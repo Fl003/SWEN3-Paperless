@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: Paperless API
+  version: 1.0.12
+servers:
+  - url: http://localhost:8081/api/v1
+tags:
+  - name: documents
+
+paths:
+  /documents:
+    post:
+      tags: [documents]
+      summary: Add a document (metadata only in Sprint 1)
+      operationId: addDocument
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentCreateRequest'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              description: URL of the new resource
+              schema: { type: string, example: /api/v1/documents/1 }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        default:
+          $ref: '#/components/responses/ServerError'
+
+  /documents/{documentId}:
+    parameters:
+      - name: documentId
+        in: path
+        required: true
+        description: Document ID
+        schema: { type: integer, format: int64, minimum: 1 }
+
+    get:
+      tags: [documents]
+      summary: Get a document by id
+      operationId: getDocument
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [documents]
+      summary: Update document metadata
+      operationId: updateDocument
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentUpdateRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [documents]
+      summary: Delete a document
+      operationId: deleteDocument
+      responses:
+        '204':
+          description: No Content
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ServerError:
+      description: Server error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    DocumentResponse:
+      type: object
+      required: [documentId, name, contentType, sizeBytes, status, createdAt, lastEdited]
+      properties:
+        documentId: { type: integer, format: int64, example: 10 }
+        name:       { type: string, example: importantDocument }
+        contentType:
+          type: string
+          description: MIME type
+          example: application/pdf
+          enum: [application/pdf, image/png, text/plain]
+        sizeBytes:  { type: integer, format: int64, example: 34567 }
+        status:
+          type: string
+          enum: [uploaded, ocrdone, indexed]
+          example: uploaded
+        createdAt:  { type: string, format: date-time, example: '2025-09-09T12:00:00Z' }
+        lastEdited: { type: string, format: date-time, example: '2025-09-11T08:30:00Z' }
+
+    DocumentCreateRequest:
+      type: object
+      required: [name, contentType, sizeBytes]
+      properties:
+        name:        { type: string }
+        contentType: { type: string, example: application/pdf }
+        sizeBytes:   { type: integer, format: int64 }
+        tags:
+          type: array
+          items: { type: string }
+
+    DocumentUpdateRequest:
+      type: object
+      properties:
+        name:        { type: string }
+        contentType: { type: string, example: application/pdf }
+        sizeBytes:   { type: integer, format: int64 }
+        status:      { type: string, enum: [uploaded, ocrdone, indexed] }
+        lastEdited:  { type: string, format: date-time }
+        tags:
+          type: array
+          items: { type: string }
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:    { type: string, example: NOT_FOUND }
+        message: { type: string, example: Document not found }
