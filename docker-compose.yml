@@ -5,7 +5,8 @@ services:
       POSTGRES_DB: paperless
       POSTGRES_USER: paperless
       POSTGRES_PASSWORD: paperless
-    ports: ["5432:5432"]
+    ports:
+      - "5432:5432"
     volumes:
       - dbdata:/var/lib/postgresql/data
     healthcheck:
@@ -16,7 +17,28 @@ services:
 
   adminer:
     image: adminer:4
-    ports: ["9091:8080"]
+    ports:
+      - "9091:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # rest server
+  rest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: paperless-rest
+    ports:
+      - "18081:8081"
+    environment:
+      # Spring reads these from application.properties defaults:
+      # spring.datasource.url=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: paperless
+      DB_USER: paperless
+      DB_PASSWORD: paperless
     depends_on:
       db:
         condition: service_healthy
