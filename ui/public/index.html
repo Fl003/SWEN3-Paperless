@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Paperless – dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="./styles.css" rel="stylesheet" />
+</head>
+<body>
+<header><h1>Paperless – DOCUMENTS</h1></header>
+<main>
+    <div id="status" class="muted">Loading…</div>
+    <table id="docsTable" class="hidden">
+        <thead>
+        <tr><th>ID</th><th>Title / Filename</th><th>Tags</th><th>Created</th></tr>
+        </thead>
+        <tbody id="docsBody"></tbody>
+    </table>
+</main>
+<script src="./app.js" defer></script>
+</body>
+</html>

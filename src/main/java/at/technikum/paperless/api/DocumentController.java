@@ -8,7 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/documents")
@@ -16,6 +17,14 @@ import java.util.*;
 public class DocumentController {
 
     private final DocumentService service;
+
+    // GET /api/v1/documents  -> list all documents
+    @GetMapping
+    public List<Map<String, Object>> list() {
+        return service.findAll().stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
     @PostMapping
     public ResponseEntity<Map<String,Object>> add(@RequestBody Map<String,Object> body) {

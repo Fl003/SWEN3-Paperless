@@ -43,5 +43,16 @@ services:
       db:
         condition: service_healthy
 
+  ui:
+    build: ./ui
+    depends_on:
+      - rest
+    ports:
+      - "8080:80"          # browser uses http://localhost:8080
+
 volumes:
   dbdata:
+
+networks:
+  appnet:
+    driver: bridge
