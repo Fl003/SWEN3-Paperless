@@ -3,14 +3,15 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: paperless
-      POSTGRES_USER: paperless
-      POSTGRES_PASSWORD: paperless
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
     ports:
       - "5432:5432"
     volumes:
       - dbdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U paperless -d paperless"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d paperless"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -30,7 +31,7 @@ services:
       dockerfile: Dockerfile
     container_name: paperless-rest
     ports:
-      - "18081:8081"
+      - "8081:8081"
     environment:
       # Spring reads these from application.properties defaults:
       # spring.datasource.url=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
