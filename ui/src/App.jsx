@@ -7,7 +7,7 @@ export default function App() {
     return (
         <>
             <header className="app-header">
-                <h1>Paperless – documents</h1>
+                <h1>PAPERLESS</h1>
                 <nav>
                     <Link to="/">Dashboard</Link>
                 </nav>
