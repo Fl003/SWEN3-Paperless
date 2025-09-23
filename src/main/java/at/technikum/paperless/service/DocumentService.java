@@ -5,11 +5,14 @@ import at.technikum.paperless.domain.Tag;
 import at.technikum.paperless.repository.DocumentRepository;
 import at.technikum.paperless.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
+import java.util.List;
 
 @Service @RequiredArgsConstructor
 public class DocumentService {
@@ -33,7 +36,10 @@ public class DocumentService {
         return docs.save(d);
     }
 
-    @Transactional(readOnly = true) public Document get(long id){ return docs.findById(id).orElseThrow(); }
+    @Transactional(readOnly = true)
+    public List<Document> findAll() { return docs.findAll(); }
+
+    @Transactional(readOnly = true) public Document get(long id){ return docs.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found: " + id));}
 
     @Transactional
     public Document update(long id, String name, String ct, Long size, String status, Collection<String> tagNames){
