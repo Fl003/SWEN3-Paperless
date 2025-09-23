@@ -23,7 +23,7 @@ export default function DocumentDetails() {
             <p><b>Created:</b> {doc.createdAt ?? '—'}</p>
             <p><b>Tags:</b> {(doc.tags || []).join(', ')}</p>
             <pre>{JSON.stringify(doc, null, 2)}</pre>
-            <p><Link to="..">← Back</Link></p>
+            <p><Link to=".." className="btn">← Back</Link></p>
         </div>
     )
 }
