@@ -13,3 +13,8 @@ export async function getDocument(id) {
     const res = await fetch(`/api/v1/documents/${encodeURIComponent(id)}`)
     return handle(res)
 }
+
+export async function deleteDocument(id) {
+    const res = await fetch(`/api/v1/documents/${encodeURIComponent(id)}`, { method: 'DELETE' })
+    return handle(res)
+}

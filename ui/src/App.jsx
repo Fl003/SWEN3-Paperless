@@ -1,23 +1,102 @@
-import React from 'react'
-import { Routes, Route, Link } from 'react-router-dom'
-import Documents from './pages/Documents.jsx'
+import React, { useEffect, useState } from 'react'
+import { Routes, Route, Link, useLocation } from 'react-router-dom'
+import DocumentsListView from './pages/DocumentsListView.jsx'
 import DocumentDetails from './pages/DocumentDetails.jsx'
+import ListIcon from './icons/list.svg'
+import CardsIcon from './icons/cards.svg'
+import UploadIcon from './icons/upload.svg'
+import AddDocumentModal from "./shared/AddDocumentModal.jsx";
+import DocumentsCardsView from "./pages/DocumentsCardsView.jsx";
+import { listDocuments } from './services/api.js'
+import DeleteDocumentModal from "./shared/DeleteDocumentModal.jsx";
 
 export default function App() {
+    const location = useLocation();
+    const [showAdd, setShowAdd] = useState(false)
+    const [showDelete, setShowDelete] = useState(false)
+    const [docs, setDocs] = useState(null)
+    const [error, setError] = useState(null)
+    const [listStyle, setListStyle] = useState("list")
+    const [deleteId, setDeleteId] = useState(null)
+
+    function deleteFile(id) {
+        setDeleteId(id)
+        setShowDelete(true)
+    }
+
+    async function refresh() {
+        try {
+            setError(null)
+            const data = await listDocuments()
+            setDocs(data)
+        } catch (err) {
+            setError(err.message)
+        }
+    }
+
+    useEffect(() => { refresh() }, [])
+
     return (
         <>
-            <header className="app-header">
+            <div className="sidebar">
                 <h1>PAPERLESS</h1>
                 <nav>
                     <Link to="/">Dashboard</Link>
                 </nav>
-            </header>
-            <main className="container">
-                <Routes>
-                    <Route path="/" element={<Documents />} />
-                    <Route path="/document/:id" element={<DocumentDetails />} />
-                </Routes>
-            </main>
+            </div>
+            <div className="content-side">
+                <div className="content-header">
+                    <h2>DOCUMENTS</h2>
+                    <div className="actions-bar">
+                        {location.pathname === "/" && (
+                            <div className="list-style-switch">
+                                <button id="list" className={listStyle === 'list' ? 'active' : ''} onClick={() => setListStyle("list")}>
+                                    <img src={ListIcon} alt="List"/>
+                                </button>
+                                <button id="cards" className={listStyle === 'cards' ? 'active' : ''} onClick={() => setListStyle("cards")}>
+                                    <img src={CardsIcon} alt="Cards"/>
+                                </button>
+                            </div>
+                        )}
+                        <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
+                            <img src={UploadIcon} alt="Upload"/>
+                            Upload
+                        </button>
+                    </div>
+                </div>
+
+                <main className="container">
+                    {error && <p className="muted">Failed to load: {error}</p>}
+                    {!docs && !error && <p className="muted">Loading…</p>}
+
+                    <Routes>
+                        <Route path="/" element={
+                            docs && (
+                                listStyle === "list"
+                                    ? <DocumentsListView docs={docs} deleteFile={deleteFile} />
+                                    : <DocumentsCardsView docs={docs} deleteFile={deleteFile} />
+                            )
+                        } />
+                        <Route path="/document/:id" element={<DocumentDetails />} />
+                    </Routes>
+                </main>
+            </div>
+
+            {showAdd && (
+                <AddDocumentModal
+                    onClose={() => setShowAdd(false)}
+                    onCreated={() => { setShowAdd(false); refresh() }}
+                />
+            )}
+
+            {showDelete && (
+                <DeleteDocumentModal
+                    fileId={deleteId}
+                    title={docs.find(d => d.documentId === deleteId)?.name ?? '(untitled)' }
+                    onClose={() => { setShowDelete(false); setDeleteId(null)}}
+                    onDeleted={() => { setShowDelete(false); setDeleteId(null); refresh()}}
+                />
+            )}
         </>
     )
 }

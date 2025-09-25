@@ -1,30 +1,64 @@
 import React, { useState } from 'react'
+import UploadIcon from '../icons/upload.svg'
+import DocumentTypeIcon from "./DocumentTypeIcon.jsx";
+
+// Maximale Dateigröße (in Bytes) - hier 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export default function AddDocumentModal({ onClose, onCreated }) {
-    const [name, setName] = useState('')
-    const [contentType, setContentType] = useState('')
-    const [sizeBytes, setSizeBytes] = useState('')
+    const [file, setFile] = useState(null)
     const [tags, setTags] = useState('')
+    const [fileOver, setFileOver] = useState(false)
+
     const [busy, setBusy] = useState(false)
     const [err, setErr] = useState(null)
 
+    const handleFileChange = (e) => {
+        setErr(''); // Fehler zurücksetzen
+
+        const selectedFile = e.target.files?.[0];
+        if (!selectedFile) {
+            return;
+        }
+
+        // Größenüberprüfung
+        if (selectedFile.size > MAX_FILE_SIZE) {
+            setErr('Die Datei ist zu groß. Maximale Größe ist 10MB.');
+            e.target.value = ''; // Input zurücksetzen
+            return;
+        }
+
+        setFile(selectedFile);
+    };
+
     async function submit(e) {
         e.preventDefault()
-        setBusy(true); setErr(null)
+        if (!file) return;
+
+        setBusy(true);
+        setErr(null);
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const tagArray = tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : [];
+        formData.append("tags", JSON.stringify(tagArray));
+
+        console.log(formData);
+
         try {
-            const res = await fetch('/api/v1/documents', {
+            const response = await fetch('/api/v1/documents', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: name || null,
-                    contentType: contentType || null,
-                    sizeBytes: sizeBytes ? Number(sizeBytes) : 0,
-                    tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : []
-                })
-            })
-            if (!res.ok) throw new Error(`HTTP ${res.status}`)
-            await res.json()
-            onCreated?.()
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+            }
+
+            const data = await response.json();
+            console.log('Upload erfolgreich:', data);
+            onCreated?.();
         } catch (e2) {
             setErr(e2.message)
         } finally {
@@ -43,34 +77,22 @@ export default function AddDocumentModal({ onClose, onCreated }) {
                 {err && <div className="alert">{err}</div>}
 
                 <form onSubmit={submit} className="form-grid">
-                    <label>
-                        <span>Name</span>
-                        <input
-                            required
-                            value={name}
-                            onChange={e => setName(e.target.value)}
-                        />
-                    </label>
 
-                    <label>
-                        <span>Content type</span>
-                        <input
-                            required
-                            value={contentType}
-                            onChange={e => setContentType(e.target.value)}
-                        />
-                    </label>
-
-                    <label>
-                        <span>Size (bytes)</span>
-                        <input
-                            type="number"
-                            min="0"
-                            required
-                            value={sizeBytes}
-                            onChange={e => setSizeBytes(e.target.value)}
-                        />
-                    </label>
+                    <div className={file || fileOver ? "active input-wrapper" : "input-wrapper"}>
+                        <input type="file" onChange={handleFileChange} onDragOver={e => { e.preventDefault(); setFileOver(true) }} onDragExit={e => { e.preventDefault(); setFileOver(false) }}/>
+                        {!file && (
+                            <label htmlFor="file">
+                                <img src={UploadIcon} alt="Upload" />
+                                <span>Drag & Drop or Choose file to upload</span>
+                            </label>
+                        )}
+                        {file && (
+                            <div className="file-info">
+                                <DocumentTypeIcon contentType={file.type}/>
+                                <p>{file.name ?? '(untitled)'}</p>
+                            </div>
+                        )}
+                    </div>
 
                     <label>
                         <span>Tags (comma separated)</span>

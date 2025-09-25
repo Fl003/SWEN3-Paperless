@@ -1,0 +1,15 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 100" width="80" height="100">
+	<style>
+		.s0 { fill: #00ac54 } 
+		.s1 { opacity: .5;fill: #ffffff } 
+		.s2 { fill: none;stroke: #ffffff;stroke-miterlimit:10;stroke-width: 3 } 
+	</style>
+	<path id="&lt;Path&gt;" class="s0" d="m56.16 95.23h-41.84c-8.01 0-14.51-6.49-14.51-14.5v-66.3c0-8.01 6.5-14.51 14.51-14.51h36.35l20 20.1v60.71c0 8.01-6.5 14.5-14.51 14.5z"/>
+	<path id="&lt;Path&gt;" class="s1" d="m70.67 20.02h-15.89c-2.25 0-4.08-1.82-4.08-4.07l-0.03-16.03"/>
+	<g id="&lt;Group&gt;">
+		<path id="&lt;Path&gt;" class="s2" d="m54.86 70.44h-41.24v-31.96h41.24z"/>
+		<path id="&lt;Path&gt;" class="s2" d="m23.04 38.48v31.96"/>
+		<path id="&lt;Path&gt;" class="s2" d="m13.62 61.31h41.24"/>
+		<path id="&lt;Path&gt;" class="s2" d="m13.62 48.91h41.24"/>
+	</g>
+</svg>
