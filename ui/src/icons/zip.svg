@@ -1,0 +1,24 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 100" width="80" height="100">
+	<style>
+		.s0 { fill: #596c89 } 
+		.s1 { fill: #ffffff } 
+		.s2 { fill: #a1bedf } 
+		.s3 { opacity: .5;fill: #ffffff } 
+	</style>
+	<path id="&lt;Path&gt;" class="s0" d="m56.16 95.51h-41.84c-8.01 0-14.51-6.49-14.51-14.5v-66.3c0-8.01 6.5-14.5 14.51-14.5h36.35l20 20.09v60.71c0 8.01-6.5 14.5-14.51 14.5z"/>
+	<g id="Ordner 1">
+		<path id="&lt;Path&gt;" class="s1" d="m34.15 4.85h-4.65v-4.64h4.65z"/>
+		<path id="&lt;Path&gt;" class="s1" d="m38.8 9.5h-4.65v-4.65h4.65z"/>
+		<path id="&lt;Path&gt;" class="s1" d="m34.15 14.15h-4.65v-4.65h4.65z"/>
+		<path id="&lt;Path&gt;" class="s1" d="m38.8 18.8h-4.65v-4.65h4.65z"/>
+		<path id="&lt;Path&gt;" class="s1" d="m34.15 23.45h-4.65v-4.65h4.65z"/>
+		<path id="&lt;Path&gt;" class="s1" d="m38.8 28.09h-4.65v-4.64h4.65z"/>
+		<path id="&lt;Path&gt;" class="s1" d="m34.15 32.74h-4.65v-4.65h4.65z"/>
+		<path id="&lt;Path&gt;" class="s1" d="m38.8 37.39h-4.65v-4.65h4.65z"/>
+		<path id="&lt;Path&gt;" class="s1" d="m34.15 42.04h-4.65v-4.65h4.65z"/>
+		<path id="&lt;Path&gt;" class="s1" d="m38.8 46.68h-4.65v-4.64h4.65z"/>
+		<path id="&lt;Path&gt;" class="s1" d="m38.8 59.65h-9.3v-12.97h9.3z"/>
+		<path id="&lt;Path&gt;" class="s2" d="m36.47 57.81h-4.65v-4.65h4.65z"/>
+	</g>
+	<path id="&lt;Path&gt;" class="s3" d="m70.67 20.02h-15.89c-2.25 0-4.08-1.82-4.08-4.07l-0.03-16.03"/>
+</svg>
