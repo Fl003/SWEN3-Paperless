@@ -4,6 +4,9 @@ import DocumentTypeIcon from "./DocumentTypeIcon.jsx";
 
 // Maximale Dateigröße (in Bytes) - hier 10MB
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+//for tags
+const MAX_TAGS = 20;
+const MAX_TAG_LEN = 50;
 
 export default function AddDocumentModal({ onClose, onCreated }) {
     const [file, setFile] = useState(null)
@@ -12,9 +15,41 @@ export default function AddDocumentModal({ onClose, onCreated }) {
 
     const [busy, setBusy] = useState(false)
     const [err, setErr] = useState(null)
+    const [fieldErr, setFieldErr] = useState({});  // per-field validation errors
+
+    function validate(currentFile, currentTags) {
+        const fe = {};
+
+        if (!currentFile) {
+            fe.file = 'Please choose a file to upload.';
+        } else {
+            if (currentFile.size > MAX_FILE_SIZE) {
+                fe.file = 'File is too large (max 10 MB).';
+            }
+            if (currentFile.size <= 0) {
+                fe.file = 'File is empty.';
+            }
+        }
+
+        if (typeof currentTags === 'string' && currentTags.trim().length) {
+            const arr = currentTags
+                .split(',')
+                .map(t => t.trim())
+                .filter(Boolean);
+
+            if (arr.length > MAX_TAGS) {
+                fe.tags = `Too many tags (max ${MAX_TAGS}).`;
+            } else if (arr.some(t => t.length > MAX_TAG_LEN)) {
+                fe.tags = `Each tag must be ≤ ${MAX_TAG_LEN} characters.`;
+            }
+        }
+
+        return fe;
+    }
 
     const handleFileChange = (e) => {
-        setErr(''); // Fehler zurücksetzen
+        setErr(null);
+        setFieldErr({ ...fieldErr, file: undefined });
 
         const selectedFile = e.target.files?.[0];
         if (!selectedFile) {
@@ -23,8 +58,9 @@ export default function AddDocumentModal({ onClose, onCreated }) {
 
         // Größenüberprüfung
         if (selectedFile.size > MAX_FILE_SIZE) {
-            setErr('Die Datei ist zu groß. Maximale Größe ist 10MB.');
+            setFieldErr(prev => ({ ...prev, file: 'File is too big, max 10 MB.' }));
             e.target.value = ''; // Input zurücksetzen
+            setFile(null);
             return;
         }
 
@@ -32,37 +68,43 @@ export default function AddDocumentModal({ onClose, onCreated }) {
     };
 
     async function submit(e) {
-        e.preventDefault()
-        if (!file) return;
-
-        setBusy(true);
+        e.preventDefault();
         setErr(null);
 
-        const formData = new FormData();
-        formData.append('file', file);
+        // run validation
+        const fe = validate(file, tags);
+        setFieldErr(fe);
+        if (Object.keys(fe).length) return;
 
-        const tagArray = tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : [];
-        formData.append("tags", JSON.stringify(tagArray));
-
-        console.log(formData);
+        setBusy(true);
 
         try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const tagArray = tags
+                ? tags.split(',').map(t => t.trim()).filter(Boolean)
+                : [];
+            formData.append('tags', JSON.stringify(tagArray));
+
             const response = await fetch('/api/v1/documents', {
                 method: 'POST',
                 body: formData
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                // surface server-provided details if available
+                const text = await response.text();
+                throw new Error(`HTTP ${response.status}: ${text || 'Upload failed'}`);
             }
 
-            const data = await response.json();
-            console.log('Upload erfolgreich:', data);
-            onCreated?.();
+            await response.json(); // optional: consume data
+            onCreated?.();         // let parent refresh
+            onClose?.();           // close modal after success (optional)
         } catch (e2) {
-            setErr(e2.message)
+            setErr(e2.message || 'Upload failed');
         } finally {
-            setBusy(false)
+            setBusy(false);
         }
     }
 
@@ -76,34 +118,57 @@ export default function AddDocumentModal({ onClose, onCreated }) {
 
                 {err && <div className="alert">{err}</div>}
 
-                <form onSubmit={submit} className="form-grid">
+                <form onSubmit={submit} className="form-grid" noValidate>
+                    {/* File input */}
+                    <div
+                        className={(file || fileOver ? 'active ' : '') + 'input-wrapper'}
+                        onDragOver={e => { e.preventDefault(); if (!fileOver) setFileOver(true); }}
+                        onDragLeave={e => { e.preventDefault(); if (fileOver) setFileOver(false); }}
+                    >
+                        <input
+                            id="file"
+                            type="file"
+                            accept="*/*"
+                            onChange={handleFileChange}
+                            aria-invalid={Boolean(fieldErr.file)}
+                            aria-describedby={fieldErr.file ? 'file-error' : undefined}
+                        />
 
-                    <div className={file || fileOver ? "active input-wrapper" : "input-wrapper"}>
-                        <input type="file" onChange={handleFileChange} onDragOver={e => { e.preventDefault(); setFileOver(true) }} onDragExit={e => { e.preventDefault(); setFileOver(false) }}/>
                         {!file && (
                             <label htmlFor="file">
                                 <img src={UploadIcon} alt="Upload" />
-                                <span>Drag & Drop or Choose file to upload</span>
+                                <span>Drag & Drop or choose a file to upload</span>
                             </label>
                         )}
+
                         {file && (
                             <div className="file-info">
                                 <DocumentTypeIcon contentType={file.type}/>
-                                <p>{file.name ?? '(untitled)'}</p>
+                                <p title={file.name}>{file.name ?? '(untitled)'}</p>
                             </div>
                         )}
                     </div>
+                    {fieldErr.file && <div id="file-error" className="field-error">{fieldErr.file}</div>}
 
-                    <label>
+                    {/* Tags */}
+                    <label htmlFor="tags">
                         <span>Tags (comma separated)</span>
                         <input
+                            id="tags"
                             value={tags}
-                            onChange={e => setTags(e.target.value)}
+                            onChange={e => {
+                                setTags(e.target.value);
+                                if (fieldErr.tags) setFieldErr(prev => ({ ...prev, tags: undefined }));
+                            }}
+                            aria-invalid={Boolean(fieldErr.tags)}
+                            aria-describedby={fieldErr.tags ? 'tags-error' : undefined}
                         />
                     </label>
+                    {fieldErr.tags && <div id="tags-error" className="field-error">{fieldErr.tags}</div>}
 
+                    {/* Actions */}
                     <div className="modal-actions">
-                        <button type="button" className="btn" onClick={onClose}>Cancel</button>
+                        <button type="button" className="btn" onClick={onClose} disabled={busy}>Cancel</button>
                         <button type="submit" className="btn btn-primary" disabled={busy}>
                             {busy ? 'Saving…' : 'Save'}
                         </button>
@@ -111,5 +176,5 @@ export default function AddDocumentModal({ onClose, onCreated }) {
                 </form>
             </div>
         </div>
-    )
+    );
 }

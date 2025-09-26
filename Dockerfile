@@ -14,16 +14,18 @@ RUN mvn -DskipTests clean package
 ############################
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-# non-root is nice-to-have
-RUN useradd -ms /bin/bash appuser
-USER appuser
 
 # copy the boot jar (name wildcard keeps it future-proof)
 COPY --from=build /app/target/*SNAPSHOT.jar app.jar
 
-EXPOSE 8081
 # optional JVM flags via JAVA_OPTS
 ENV JAVA_OPTS=""
 
-# start Spring Boot
-ENTRYPOINT ["java $JAVA_OPTS -jar app.jar"]
+# non-root is nice-to-have
+RUN useradd -ms /bin/bash appuser
+USER appuser
+
+EXPOSE 8081
+
+# use a shell so $JAVA_OPTS is expanded (prevents “executable not found” error)
+CMD ["sh","-c","exec java $JAVA_OPTS -jar /app/app.jar"]

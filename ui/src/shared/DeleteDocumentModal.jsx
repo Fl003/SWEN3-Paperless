@@ -3,12 +3,24 @@ import React, { useState } from 'react'
 export default function DeleteDocumentModal({ fileId, title, onClose, onDeleted }) {
     const [busy, setBusy] = useState(false)
     const [err, setErr] = useState(null)
+    const [fieldErr, setFieldErr] = useState(null); // confirmation error
+
+    function validate() {
+        if (!Number.isFinite(Number(fileId)) || Number(fileId) <= 0) {
+            return 'Invalid document id.';
+        }
+        return null;
+    }
 
     async function submit(e) {
         e.preventDefault()
 
         setBusy(true);
         setErr(null);
+
+        const v = validate();
+        setFieldErr(v);
+        if (v) return;
 
         try {
             console.log('deleting: ' + fileId);

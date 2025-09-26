@@ -535,3 +535,14 @@ pre {
     border-radius: 8px;
     padding: 10px 12px;
 }
+
+.field-error {
+    color: #b3261e;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+[aria-invalid="true"] {
+    outline: 2px solid #b3261e;
+    outline-offset: 2px;
+}
