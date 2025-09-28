@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
+import {fetchWithAuth} from "../services/api.js";
 
 export default function DeleteDocumentModal({ fileId, title, onClose, onDeleted }) {
     const [busy, setBusy] = useState(false)
     const [err, setErr] = useState(null)
-    const [fieldErr, setFieldErr] = useState(null); // confirmation error
 
     function validate() {
         if (!Number.isFinite(Number(fileId)) || Number(fileId) <= 0) {
@@ -19,16 +19,12 @@ export default function DeleteDocumentModal({ fileId, title, onClose, onDeleted 
         setErr(null);
 
         const v = validate();
-        setFieldErr(v);
+        setErr(v);
         if (v) return;
 
         try {
-            console.log('deleting: ' + fileId);
-            const response = await fetch('/api/v1/documents/' + fileId, { method: 'DELETE' });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-            }
+            const response = await fetchWithAuth('/api/v1/documents/' + fileId, { method: 'DELETE' });
+            console.log(response);
             onDeleted?.();
         } catch (e2) {
             setErr(e2.message)
