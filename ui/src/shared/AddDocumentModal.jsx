@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { validateDocumentInput, toDocumentPayload } from '../validation/document-schema.js'
 import UploadIcon from '../icons/upload.svg'
 import DocumentTypeIcon from "./DocumentTypeIcon.jsx";
+import {fetchWithAuth} from "../services/api.js";
 
 // Maximale Dateigröße (in Bytes) - hier 10MB
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -87,20 +88,20 @@ export default function AddDocumentModal({ onClose, onCreated }) {
             const tagArray = tags
                 ? tags.split(',').map(t => t.trim()).filter(Boolean)
                 : [];
-            formData.append('tags', JSON.stringify(tagArray));
+            tagArray.forEach(tag => formData.append('tags', tag));
 
-            const response = await fetch('/api/v1/documents', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
+            try {
+                const result = await fetchWithAuth("/api/v1/documents", {
+                    method: 'POST',
+                    body: formData
+                });
+                // optional: consume data
+            } catch (err) {
                 // surface server-provided details if available
                 const text = await response.text();
                 throw new Error(`HTTP ${response.status}: ${text || 'Upload failed'}`);
             }
 
-            await response.json(); // optional: consume data
             onCreated?.();         // let parent refresh
             onClose?.();           // close modal after success (optional)
         } catch (e2) {

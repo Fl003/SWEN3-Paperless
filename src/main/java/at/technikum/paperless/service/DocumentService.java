@@ -26,8 +26,6 @@ public class DocumentService {
     @Transactional
     public Document uploadFile(MultipartFile file, Collection<String> tagNames) {
         try {
-            log.info("tagnames: " + tagNames);
-
             // Speichere die Datei
             String storedFilePath = fileStorage.store(file);
 

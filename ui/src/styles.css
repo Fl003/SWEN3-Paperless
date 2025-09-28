@@ -361,6 +361,7 @@ pre {
     box-shadow: 0 4px 12px #5b86e540;
     display: flex;
     align-items: center;
+    justify-content: center;
     transition: box-shadow .2s ease;
 }
 
@@ -545,4 +546,93 @@ pre {
 [aria-invalid="true"] {
     outline: 2px solid #b3261e;
     outline-offset: 2px;
+}
+
+/* LOGIN */
+
+.login {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(228, 228, 228);
+}
+
+.login .bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 95%;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.login .bg span {
+    font-size: 15rem;
+    display: block;
+    letter-spacing: 2rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--brand1), var(--brand2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.login form {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px 40px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.login .input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.login .input-wrapper input {
+    height: 45px;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 0 15px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.login .input-wrapper input:focus {
+    border-color: var(--brand2);
+}
+
+.login .input-wrapper label {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    background-color: white;
+    padding: 0 5px;
+    color: #999;
+    font-size: 1rem;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.login .input-wrapper input:focus~label,
+.login .input-wrapper input:not(:placeholder-shown)~label {
+    top: 0px;
+    left: 10px;
+    font-size: 0.8rem;
+    color: var(--brand2);
 }

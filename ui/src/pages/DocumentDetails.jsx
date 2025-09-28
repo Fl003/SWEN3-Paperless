@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { getDocument } from '../services/api.js'
+import { fetchWithAuth } from '../services/api.js'
 import DocumentTypeIcon from "../shared/DocumentTypeIcon.jsx";
 
 export default function DocumentDetails() {
@@ -9,8 +9,8 @@ export default function DocumentDetails() {
     const [error, setError] = useState(null)
 
     useEffect(() => {
-        getDocument(id)
-            .then(setDoc)
+        const result = fetchWithAuth("/api/v1/documents/" + id);
+        result.then(setDoc)
             .catch(err => setError(err.message))
     }, [id])
 

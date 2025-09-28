@@ -7,7 +7,7 @@ import CardsIcon from './icons/cards.svg'
 import UploadIcon from './icons/upload.svg'
 import AddDocumentModal from "./shared/AddDocumentModal.jsx";
 import DocumentsCardsView from "./pages/DocumentsCardsView.jsx";
-import { listDocuments } from './services/api.js'
+import { fetchWithAuth } from './services/api.js'
 import DeleteDocumentModal from "./shared/DeleteDocumentModal.jsx";
 
 export default function App() {
@@ -27,11 +27,17 @@ export default function App() {
     async function refresh() {
         try {
             setError(null)
-            const data = await listDocuments()
-            setDocs(data)
+            const data = await fetchWithAuth("/api/v1/documents")
+            console.log(data);
+            setDocs(data);
         } catch (err) {
             setError(err.message)
         }
+    }
+
+    function closeDeleteModal() {
+        setShowDelete(false);
+        setDeleteId(null)
     }
 
     useEffect(() => { refresh() }, [])
@@ -77,7 +83,9 @@ export default function App() {
                                     : <DocumentsCardsView docs={docs} deleteFile={deleteFile} />
                             )
                         } />
-                        <Route path="/document/:id" element={<DocumentDetails />} />
+                        <Route path="/document/:id" element={
+                            <DocumentDetails />
+                        } />
                     </Routes>
                 </main>
             </div>
@@ -93,8 +101,8 @@ export default function App() {
                 <DeleteDocumentModal
                     fileId={deleteId}
                     title={docs.find(d => d.documentId === deleteId)?.name ?? '(untitled)' }
-                    onClose={() => { setShowDelete(false); setDeleteId(null)}}
-                    onDeleted={() => { setShowDelete(false); setDeleteId(null); refresh()}}
+                    onClose={() => { closeDeleteModal() }}
+                    onDeleted={() => { closeDeleteModal(); refresh()}}
                 />
             )}
         </>
