@@ -2,15 +2,12 @@ import { Navigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
 function isTokenValid(token) {
-    /* try {
+    try {
         const { exp } = jwtDecode(token);
-        window.alert(exp + " " + exp * 1000 > Date.now());
         return exp * 1000 > Date.now();
     } catch {
         return false;
-    } */
-
-    return true;
+    }
 }
 
 export default function ProtectedRoute({ children }) {
