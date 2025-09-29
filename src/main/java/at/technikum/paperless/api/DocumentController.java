@@ -37,7 +37,7 @@ public class DocumentController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Map<String,Object>> upload(
+    public ResponseEntity<DocumentDTO> upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "tags", required = false) List<String> tags
     ) {
@@ -53,12 +53,13 @@ public class DocumentController {
 
         return ResponseEntity
                 .created(URI.create("/api/v1/documents/" + document.getId()))
-                .body(toResponse(document));
+                .body(mapper.map(document));
     }
 
     @GetMapping("/{id}")
-    public Map<String,Object> get(@PathVariable long id) {
-        return toResponse(service.get(id));
+    public DocumentDTO get(@PathVariable long id) {
+        var document = service.get(id);
+        return mapper.map(document);
     }
 
     @PutMapping("/{id}")

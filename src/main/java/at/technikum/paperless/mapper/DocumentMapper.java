@@ -11,7 +11,7 @@ import org.mapstruct.*;
         unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
 public abstract class DocumentMapper {
-    //von object to dto
+    //from object to data  (for GET)
     @Mapping(target = "documentId", source = "id")
     @Mapping(target = "tags", source = "tags")
     public abstract DocumentDTO map(Document document);
