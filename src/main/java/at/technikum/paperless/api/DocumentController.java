@@ -2,13 +2,21 @@ package at.technikum.paperless.api;
 
 import at.technikum.paperless.domain.Document;
 import at.technikum.paperless.domain.Tag;
+import at.technikum.paperless.dto.DocumentDTO;
+import at.technikum.paperless.mapper.DocumentMapper;
 import at.technikum.paperless.service.DocumentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/documents")
@@ -16,21 +24,42 @@ import java.util.*;
 public class DocumentController {
 
     private final DocumentService service;
+    @Autowired
+    private DocumentMapper mapper;
 
-    @PostMapping
-    public ResponseEntity<Map<String,Object>> add(@RequestBody Map<String,Object> body) {
-        var d = service.create(
-                (String) body.get("name"),
-                (String) body.get("contentType"),
-                ((Number) body.get("sizeBytes")).longValue(),
-                (List<String>) body.get("tags"));
-        return ResponseEntity.created(URI.create("/api/v1/documents/" + d.getId()))
-                .body(toResponse(d));
+    // GET /api/v1/documents  -> list all documents
+    @GetMapping
+    public List<DocumentDTO> list() {
+        var documents =  service.findAll();
+        return documents.stream()
+                .map(mapper::map)
+                .toList();
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DocumentDTO> upload(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "tags", required = false) List<String> tags
+    ) {
+        // Überprüfe die Dateigröße (10MB in Bytes)
+        if (file.getSize() > 10 * 1024 * 1024) {
+            throw new ResponseStatusException(
+                    HttpStatus.PAYLOAD_TOO_LARGE,
+                    "Datei ist zu groß. Maximale Größe ist 10MB"
+            );
+        }
+
+        var document = service.uploadFile(file, tags);
+
+        return ResponseEntity
+                .created(URI.create("/api/v1/documents/" + document.getId()))
+                .body(mapper.map(document));
     }
 
     @GetMapping("/{id}")
-    public Map<String,Object> get(@PathVariable long id) {
-        return toResponse(service.get(id));
+    public DocumentDTO get(@PathVariable long id) {
+        var document = service.get(id);
+        return mapper.map(document);
     }
 
     @PutMapping("/{id}")

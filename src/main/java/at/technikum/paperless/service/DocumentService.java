@@ -5,35 +5,61 @@ import at.technikum.paperless.domain.Tag;
 import at.technikum.paperless.repository.DocumentRepository;
 import at.technikum.paperless.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.time.OffsetDateTime;
-import java.util.Collection;
+import java.util.*;
 
+@Slf4j
 @Service @RequiredArgsConstructor
 public class DocumentService {
     private final DocumentRepository docs;
     private final TagRepository tags;
+    private final FileStorageService fileStorage;
 
     @Transactional
-    public Document create(String name, String contentType, long sizeBytes, Collection<String> tagNames) {
-        var now = OffsetDateTime.now();
-        var d = Document.builder()
-                .name(name).contentType(contentType).sizeBytes(sizeBytes)
-                .status("uploaded").createdAt(now).lastEdited(now).build();
+    public Document uploadFile(MultipartFile file, Collection<String> tagNames) {
+        try {
+            // Speichere die Datei
+            String storedFilePath = fileStorage.store(file);
 
-        if (tagNames != null) {
-            for (var tn : tagNames) {
-                var tag = tags.findByNameIgnoreCase(tn)
-                        .orElseGet(() -> tags.save(Tag.builder().name(tn.trim()).build()));
-                d.getTags().add(tag);
+            // Erstelle das Document-Objekt mit Daten aus der Datei
+            var document = Document.builder()
+                    .name(file.getOriginalFilename())
+                    .contentType(file.getContentType())
+                    .sizeBytes(file.getSize())
+                    .status("uploaded")
+                    .createdAt(OffsetDateTime.now())
+                    .lastEdited(OffsetDateTime.now())
+                    .build();
+
+            // Falls Tags zugewiesen wurden
+            if (tagNames != null) {
+                for (var tn : tagNames) {
+                    var tag = tags.findByNameIgnoreCase(tn)
+                            .orElseGet(() -> tags.save(Tag.builder().name(tn.trim()).build()));
+                    document.getTags().add(tag);
+                }
             }
+
+            // Speichere in der Datenbank
+            return docs.save(document);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Fehler beim Hochladen der Datei: " + e.getMessage(), e);
         }
-        return docs.save(d);
     }
 
-    @Transactional(readOnly = true) public Document get(long id){ return docs.findById(id).orElseThrow(); }
+    @Transactional(readOnly = true)
+    public List<Document> findAll() { return docs.findAll(); }
+
+    @Transactional(readOnly = true) public Document get(long id){ return docs.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found: " + id));}
 
     @Transactional
     public Document update(long id, String name, String ct, Long size, String status, Collection<String> tagNames){
