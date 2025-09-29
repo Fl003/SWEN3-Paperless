@@ -40,7 +40,6 @@ export default function DocumentDetails() {
                 <Link to=".." className="btn">← Back</Link>
             </div>
 
-
             <p>
                 <b>ID:</b> {doc.documentId}
             </p>
@@ -56,7 +55,7 @@ export default function DocumentDetails() {
                 : '-'}
             </p>
             <p>
-                <b>Last Modified:</b> {doc.lastModified ? new Date(doc.lastModified).toLocaleString('de-DE', {
+                <b>Last Modified:</b> {doc.lastEdited ? new Date(doc.lastEdited).toLocaleString('de-DE', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric'
@@ -65,6 +64,9 @@ export default function DocumentDetails() {
             </p>
             <p>
                 <b>Tags:</b> {(doc.tags || []).join(', ')}
+            </p>
+            <p>
+                <b>Status:</b> {doc.status}
             </p>
             <pre>
                 {JSON.stringify(doc, null, 2)}

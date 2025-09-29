@@ -35,6 +35,8 @@ export default function Login() {
                 <span>LESS</span>
             </div>
             <form onSubmit={submit}>
+                {errorMessage && <div className="alert">{errorMessage}</div>}
+
                 <div className="input-wrapper">
                     <input
                         type="text"
@@ -52,19 +54,13 @@ export default function Login() {
                         type="password"
                         id="password"
                         name="password"
-                        placeholder="*********"
+                        placeholder="*******"
                         onChange={e => {
                             setPassword(e.target.value);
                         }}
                         required/>
                     <label htmlFor="password">Password</label>
                 </div>
-
-                {errorMessage && (
-                    <div role="alert" style={{ color: 'red', marginTop: 10 }}>
-                        {errorMessage}
-                    </div>
-                )}
 
                 <button type="submit" className="btn btn-primary">Login</button>
             </form>
