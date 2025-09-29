@@ -35,6 +35,8 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
     text-align: center;
     position: fixed;
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar h1 {
@@ -95,6 +97,17 @@ body {
 .sidebar a:hover::before {
     opacity: 1;
 }
+
+.sidebar-bottom {
+    margin-top: auto;
+    padding: 16px;
+}
+
+.logout-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
 
 .content-side {
     width: 80%;

@@ -9,6 +9,7 @@ import AddDocumentModal from "./shared/AddDocumentModal.jsx";
 import DocumentsCardsView from "./pages/DocumentsCardsView.jsx";
 import { fetchWithAuth } from './services/api.js'
 import DeleteDocumentModal from "./shared/DeleteDocumentModal.jsx";
+import LogoutButton from "./shared/LogoutButton.jsx";
 
 export default function App() {
     const location = useLocation();
@@ -49,6 +50,11 @@ export default function App() {
                 <nav>
                     <Link to="/">Dashboard</Link>
                 </nav>
+                <div className="sidebar-bottom">
+                    <div className="logout-wrapper">
+                        <LogoutButton />
+                    </div>
+                </div>
             </div>
             <div className="content-side">
                 <div className="content-header">
