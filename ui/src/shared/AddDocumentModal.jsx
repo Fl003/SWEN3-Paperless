@@ -1,6 +1,5 @@
 // ui/src/shared/AddDocumentModal.jsx
 import React, { useState } from 'react'
-import { validateDocumentInput, toDocumentPayload } from '../validation/document-schema.js'
 import UploadIcon from '../icons/upload.svg'
 import DocumentTypeIcon from "./DocumentTypeIcon.jsx";
 import {fetchWithAuth} from "../services/api.js";
