@@ -150,7 +150,7 @@ export default function AddDocumentModal({ onClose, onCreated }) {
                             </div>
                         )}
                     </div>
-                    {fieldErr.file && <div id="file-error" className="field-error">{fieldErr.file}</div>}
+                    {fieldErr.file && <div id="file-error" className="alert">{fieldErr.file}</div>}
 
                     {/* Tags */}
                     <label htmlFor="tags">
@@ -166,7 +166,7 @@ export default function AddDocumentModal({ onClose, onCreated }) {
                             aria-describedby={fieldErr.tags ? 'tags-error' : undefined}
                         />
                     </label>
-                    {fieldErr.tags && <div id="tags-error" className="field-error">{fieldErr.tags}</div>}
+                    {fieldErr.tags && <div id="tags-error" className="alert">{fieldErr.tags}</div>}
 
                     {/* Actions */}
                     <div className="modal-actions">
