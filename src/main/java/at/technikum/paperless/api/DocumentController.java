@@ -2,8 +2,11 @@ package at.technikum.paperless.api;
 
 import at.technikum.paperless.domain.Document;
 import at.technikum.paperless.domain.Tag;
+import at.technikum.paperless.dto.DocumentDTO;
+import at.technikum.paperless.mapper.DocumentMapper;
 import at.technikum.paperless.service.DocumentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,17 +24,20 @@ import java.util.Map;
 public class DocumentController {
 
     private final DocumentService service;
+    @Autowired
+    private DocumentMapper mapper;
 
     // GET /api/v1/documents  -> list all documents
     @GetMapping
-    public List<Map<String, Object>> list() {
-        return service.findAll().stream()
-                .map(this::toResponse)
+    public List<DocumentDTO> list() {
+        var documents =  service.findAll();
+        return documents.stream()
+                .map(mapper::map)
                 .toList();
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Map<String,Object>> upload(
+    public ResponseEntity<DocumentDTO> upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "tags", required = false) List<String> tags
     ) {
@@ -47,12 +53,13 @@ public class DocumentController {
 
         return ResponseEntity
                 .created(URI.create("/api/v1/documents/" + document.getId()))
-                .body(toResponse(document));
+                .body(mapper.map(document));
     }
 
     @GetMapping("/{id}")
-    public Map<String,Object> get(@PathVariable long id) {
-        return toResponse(service.get(id));
+    public DocumentDTO get(@PathVariable long id) {
+        var document = service.get(id);
+        return mapper.map(document);
     }
 
     @PutMapping("/{id}")
