@@ -16,12 +16,18 @@ import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.*;
 
+import at.technikum.paperless.messaging.DocumentEventsProducer;
+import at.technikum.paperless.messaging.DocumentUploadedEvent;
+import java.time.Instant;
+import java.util.UUID;
+
 @Slf4j
 @Service @RequiredArgsConstructor
 public class DocumentService {
     private final DocumentRepository docs;
     private final TagRepository tags;
     private final FileStorageService fileStorage;
+    private final DocumentEventsProducer eventsProducer;
 
     @Transactional
     public Document uploadFile(MultipartFile file, Collection<String> tagNames) {
@@ -49,7 +55,12 @@ public class DocumentService {
             }
 
             // Speichere in der Datenbank
-            return docs.save(document);
+            var saved = docs.save(document);
+
+            // publish Kafka event (after db success)
+            publishUploadedEvent(saved, storedFilePath);
+
+            return saved;
 
         } catch (IOException e) {
             throw new RuntimeException("Fehler beim Hochladen der Datei: " + e.getMessage(), e);
@@ -81,4 +92,21 @@ public class DocumentService {
     }
 
     @Transactional public void delete(long id){ docs.deleteById(id); }
+
+    private void publishUploadedEvent(Document saved, String storagePath) {
+        var event = DocumentUploadedEvent.builder()
+                .eventId(UUID.randomUUID().toString())
+                .occurredAt(Instant.now())
+                .documentId(String.valueOf(saved.getId()))
+                .originalFilename(saved.getName())
+                .contentType(saved.getContentType())
+                .storagePath(storagePath)
+                .uploadedBy("system")       // TODO later: replace with authenticated user
+                .tenantId("default")        // TODO later: tenant logic if needed
+                .traceId(UUID.randomUUID().toString())
+                .build();
+
+        eventsProducer.publish(event);
+        log.info("Published DocumentUploadedEvent for docId={} -> {}", saved.getId(), storagePath);
+    }
 }
