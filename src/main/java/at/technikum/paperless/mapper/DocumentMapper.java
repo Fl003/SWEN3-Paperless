@@ -14,8 +14,12 @@ public abstract class DocumentMapper {
     //from object to data  (for GET)
     @Mapping(target = "documentId", source = "id")
     @Mapping(target = "tags", source = "tags")
+    @Mapping(source="author.id", target = "authorId")
     public abstract DocumentDTO map(Document document);
         protected String map(Tag tag) {
             return tag.getName();
         }
+
+        
+
 }

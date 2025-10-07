@@ -13,6 +13,7 @@ import java.util.List;
 //show
 public class DocumentDTO {
     private Long documentId;
+    private Long authorId;
     private String name;
     private String contentType;
     private long sizeBytes;

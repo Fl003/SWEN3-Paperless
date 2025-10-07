@@ -2,9 +2,11 @@ package at.technikum.paperless.api;
 
 import at.technikum.paperless.domain.Document;
 import at.technikum.paperless.domain.Tag;
+import at.technikum.paperless.domain.User;
 import at.technikum.paperless.dto.DocumentDTO;
 import at.technikum.paperless.mapper.DocumentMapper;
 import at.technikum.paperless.service.DocumentService;
+import at.technikum.paperless.utils.UserUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,11 +28,14 @@ public class DocumentController {
     private final DocumentService service;
     @Autowired
     private DocumentMapper mapper;
+    @Autowired
+    private UserUtils userUtils;
 
     // GET /api/v1/documents  -> list all documents
     @GetMapping
     public List<DocumentDTO> list() {
-        var documents =  service.findAll();
+        User currentUser = userUtils.getCurrentUser();
+        var documents =  currentUser.getDocuments();
         return documents.stream()
                 .map(mapper::map)
                 .toList();
