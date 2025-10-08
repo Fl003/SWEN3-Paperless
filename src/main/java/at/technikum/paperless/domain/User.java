@@ -35,7 +35,6 @@ public class User implements UserDetails {
 
     public void addDocument(Document document) {
         documents.add(document);
-        document.setAuthor(this);
     }
 
     public void removeDocument(Document document) {

@@ -18,6 +18,7 @@ public class Document {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @NotNull
+    @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
     @Column(nullable = false) private String contentType;

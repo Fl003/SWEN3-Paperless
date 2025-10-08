@@ -4,5 +4,6 @@ rsa:
 logging:
   level:
     org.springframework.security: DEBUG
-    org.springframework.beans.factory: DEBUG
-    org.springframework.context.annotation: DEBUG
+    root: INFO
+    org.hibernate: WARN
+    at.technikum.paperless: DEBUG
