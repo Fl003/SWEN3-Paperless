@@ -2,10 +2,13 @@ package at.technikum.paperless.api;
 
 import at.technikum.paperless.domain.Document;
 import at.technikum.paperless.domain.Tag;
+import at.technikum.paperless.domain.User;
 import at.technikum.paperless.dto.DocumentDTO;
 import at.technikum.paperless.mapper.DocumentMapper;
 import at.technikum.paperless.service.DocumentService;
+import at.technikum.paperless.utils.UserUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,16 +24,20 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/documents")
 @RequiredArgsConstructor
+@Slf4j
 public class DocumentController {
 
     private final DocumentService service;
     @Autowired
     private DocumentMapper mapper;
+    @Autowired
+    private UserUtils userUtils;
 
     // GET /api/v1/documents  -> list all documents
     @GetMapping
     public List<DocumentDTO> list() {
-        var documents =  service.findAll();
+        User currentUser = userUtils.getCurrentUser();
+        var documents =  currentUser.getDocuments();
         return documents.stream()
                 .map(mapper::map)
                 .toList();
@@ -41,6 +48,8 @@ public class DocumentController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "tags", required = false) List<String> tags
     ) {
+        log.info("Acceptet request for Post");
+        log.info("File name: {}", file.getOriginalFilename());
         // Überprüfe die Dateigröße (10MB in Bytes)
         if (file.getSize() > 10 * 1024 * 1024) {
             throw new ResponseStatusException(
@@ -48,8 +57,10 @@ public class DocumentController {
                     "Datei ist zu groß. Maximale Größe ist 10MB"
             );
         }
-
-        var document = service.uploadFile(file, tags);
+        User currentUser = userUtils.getCurrentUser();
+        log.info("User {}", currentUser.getUsername());
+        var document = service.uploadFile(file, tags, currentUser);
+        currentUser.addDocument(document);
 
         return ResponseEntity
                 .created(URI.create("/api/v1/documents/" + document.getId()))

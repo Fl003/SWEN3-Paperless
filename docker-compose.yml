@@ -11,10 +11,12 @@ services:
       - dbdata:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d paperless"]
+      test: ["CMD-SHELL", "pg_isready -U paperless -d paperless"]
       interval: 5s
       timeout: 3s
       retries: 20
+    networks:
+      - appnet
 
   adminer:
     image: adminer:4
@@ -23,6 +25,38 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - appnet
+
+  # Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    environment:
+        ZOOKEEPER_CLIENT_PORT: 2181
+        ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - appnet
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_BROKER_ID: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+    networks:
+      - appnet
 
   # rest server
   rest:
@@ -40,9 +74,28 @@ services:
       DB_NAME: paperless
       DB_USER: paperless
       DB_PASSWORD: paperless
+
+        # Kafka connection for Spring Boot
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       db:
         condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - appnet
+
+  # === Empty OCR Worker (consumer) ===
+# ocr-worker:
+#    build: ./ocr-worker
+#    container_name: paperless-ocr-worker
+#    environment:
+#      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+#    depends_on:
+#      kafka:
+#        condition: service_started
+#    networks:
+#      - appnet
 
   ui:
     build: ./ui
@@ -50,6 +103,8 @@ services:
       - rest
     ports:
       - "8080:80"          # browser uses http://localhost:8080
+    networks:
+      - appnet
 
 volumes:
   dbdata:
