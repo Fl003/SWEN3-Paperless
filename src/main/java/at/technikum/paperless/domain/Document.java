@@ -1,6 +1,7 @@
 package at.technikum.paperless.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.OffsetDateTime;
@@ -14,6 +15,12 @@ public class Document {
     private Long id;
 
     @Column(nullable = false) private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @NotNull
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
+
     @Column(nullable = false) private String contentType;
     @Column(nullable = false) private long   sizeBytes;
     @Column(nullable = false) private String status;      // uploaded|ocrdone|indexed
