@@ -1,6 +1,7 @@
 package at.technikum.paperless.api;
 
 import at.technikum.paperless.domain.Document;
+import at.technikum.paperless.domain.User;
 import at.technikum.paperless.service.DocumentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,7 @@ class DocumentControllerTest {
                 "test data".getBytes() // content
         );
 
-        when(service.uploadFile(any(MultipartFile.class), anyList())).thenReturn(entity);
+        when(service.uploadFile(any(MultipartFile.class), anyList(), any(User.class))).thenReturn(entity);
 
         mvc.perform(multipart("/api/v1/documents")
                         .file(file)

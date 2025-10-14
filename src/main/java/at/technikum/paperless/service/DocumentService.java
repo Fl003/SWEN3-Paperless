@@ -2,6 +2,7 @@ package at.technikum.paperless.service;
 
 import at.technikum.paperless.domain.Document;
 import at.technikum.paperless.domain.Tag;
+import at.technikum.paperless.domain.User;
 import at.technikum.paperless.repository.DocumentRepository;
 import at.technikum.paperless.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
