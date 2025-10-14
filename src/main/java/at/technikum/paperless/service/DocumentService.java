@@ -31,19 +31,20 @@ public class DocumentService {
     private final DocumentEventsProducer eventsProducer;
 
     @Transactional
-    public Document uploadFile(MultipartFile file, Collection<String> tagNames) {
+    public Document uploadFile(MultipartFile file, Collection<String> tagNames, User author) {
         final String storedFilePath;
         try {
             // delegate storage to infrastructure layer
             storedFilePath = fileStorage.store(file);
-        } catch (IOException ex) {
-            // if FileStorageService still throws IOException, translate it here
+        } catch (Exception ex) {
+            // if FileStorageService still throws Exception, translate it here
             throw new FileStorageException("Fehler beim Hochladen der Datei", ex);
         }
 
         // create aggregate
         var document = Document.builder()
                 .name(file.getOriginalFilename())
+                .author(author)
                 .contentType(file.getContentType())
                 .sizeBytes(file.getSize())
                 .status("uploaded")
@@ -60,6 +61,7 @@ public class DocumentService {
             }
         }
 
+        log.info("Author before save: {}", document.getAuthor());
         // persist
         var saved = docs.save(document);
 
