@@ -10,7 +10,7 @@ logging:
 spring:
   kafka:
     #read from env (docker-compose sets KAFKA_BOOTSTRAP_SERVERS=kafka:9092)
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -18,6 +18,8 @@ spring:
 
     # server is not consuming yet-but safe defaults
     consumer:
+      group-id: rest-server-group
+      auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
