@@ -2,7 +2,6 @@ package at.technikum.paperless.service;
 
 import at.technikum.paperless.domain.Document;
 import at.technikum.paperless.domain.Tag;
-import at.technikum.paperless.domain.User;
 import at.technikum.paperless.repository.DocumentRepository;
 import at.technikum.paperless.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,21 +16,15 @@ import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.*;
 
-import at.technikum.paperless.messaging.DocumentEventsProducer;
-import at.technikum.paperless.messaging.DocumentUploadedEvent;
-import java.time.Instant;
-import java.util.UUID;
-
 @Slf4j
 @Service @RequiredArgsConstructor
 public class DocumentService {
     private final DocumentRepository docs;
     private final TagRepository tags;
     private final FileStorageService fileStorage;
-    private final DocumentEventsProducer eventsProducer;
 
     @Transactional
-    public Document uploadFile(MultipartFile file, Collection<String> tagNames, User author) {
+    public Document uploadFile(MultipartFile file, Collection<String> tagNames) {
         try {
             // Speichere die Datei
             String storedFilePath = fileStorage.store(file);
@@ -39,13 +32,13 @@ public class DocumentService {
             // Erstelle das Document-Objekt mit Daten aus der Datei
             var document = Document.builder()
                     .name(file.getOriginalFilename())
-                    .author(author)
                     .contentType(file.getContentType())
                     .sizeBytes(file.getSize())
                     .status("uploaded")
                     .createdAt(OffsetDateTime.now())
                     .lastEdited(OffsetDateTime.now())
                     .build();
+
             // Falls Tags zugewiesen wurden
             if (tagNames != null) {
                 for (var tn : tagNames) {
@@ -54,14 +47,9 @@ public class DocumentService {
                     document.getTags().add(tag);
                 }
             }
-            log.info("Author before save: {}", document.getAuthor());
+
             // Speichere in der Datenbank
-            var saved = docs.save(document);
-
-            // publish Kafka event (after db success)
-            publishUploadedEvent(saved, storedFilePath);
-
-            return saved;
+            return docs.save(document);
 
         } catch (IOException e) {
             throw new RuntimeException("Fehler beim Hochladen der Datei: " + e.getMessage(), e);
@@ -93,21 +81,4 @@ public class DocumentService {
     }
 
     @Transactional public void delete(long id){ docs.deleteById(id); }
-
-    private void publishUploadedEvent(Document saved, String storagePath) {
-        var event = DocumentUploadedEvent.builder()
-                .eventId(UUID.randomUUID().toString())
-                .occurredAt(Instant.now())
-                .documentId(String.valueOf(saved.getId()))
-                .originalFilename(saved.getName())
-                .contentType(saved.getContentType())
-                .storagePath(storagePath)
-                .uploadedBy("system")       // TODO later: replace with authenticated user
-                .tenantId("default")        // TODO later: tenant logic if needed
-                .traceId(UUID.randomUUID().toString())
-                .build();
-
-        eventsProducer.publish(event);
-        log.info("Published DocumentUploadedEvent for docId={} -> {}", saved.getId(), storagePath);
-    }
 }
