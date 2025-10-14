@@ -86,16 +86,16 @@ services:
       - appnet
 
   # === Empty OCR Worker (consumer) ===
-# ocr-worker:
-#    build: ./ocr-worker
-#    container_name: paperless-ocr-worker
-#    environment:
-#      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-#    depends_on:
-#      kafka:
-#        condition: service_started
-#    networks:
-#      - appnet
+  ocr-worker:
+    build: ./ocr-worker
+    container_name: paperless-ocr-worker
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_started
+    networks:
+      - appnet
 
   ui:
     build: ./ui
