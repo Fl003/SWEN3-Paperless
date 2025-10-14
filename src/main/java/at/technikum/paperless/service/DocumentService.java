@@ -7,11 +7,9 @@ import at.technikum.paperless.repository.DocumentRepository;
 import at.technikum.paperless.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
@@ -19,6 +17,8 @@ import java.util.*;
 
 import at.technikum.paperless.messaging.DocumentEventsProducer;
 import at.technikum.paperless.messaging.DocumentUploadedEvent;
+import at.technikum.paperless.exception.DocumentNotFoundException;
+import at.technikum.paperless.exception.FileStorageException;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -31,47 +31,52 @@ public class DocumentService {
     private final DocumentEventsProducer eventsProducer;
 
     @Transactional
-    public Document uploadFile(MultipartFile file, Collection<String> tagNames, User author) {
+    public Document uploadFile(MultipartFile file, Collection<String> tagNames) {
+        final String storedFilePath;
         try {
-            // Speichere die Datei
-            String storedFilePath = fileStorage.store(file);
-
-            // Erstelle das Document-Objekt mit Daten aus der Datei
-            var document = Document.builder()
-                    .name(file.getOriginalFilename())
-                    .author(author)
-                    .contentType(file.getContentType())
-                    .sizeBytes(file.getSize())
-                    .status("uploaded")
-                    .createdAt(OffsetDateTime.now())
-                    .lastEdited(OffsetDateTime.now())
-                    .build();
-            // Falls Tags zugewiesen wurden
-            if (tagNames != null) {
-                for (var tn : tagNames) {
-                    var tag = tags.findByNameIgnoreCase(tn)
-                            .orElseGet(() -> tags.save(Tag.builder().name(tn.trim()).build()));
-                    document.getTags().add(tag);
-                }
-            }
-            log.info("Author before save: {}", document.getAuthor());
-            // Speichere in der Datenbank
-            var saved = docs.save(document);
-
-            // publish Kafka event (after db success)
-            publishUploadedEvent(saved, storedFilePath);
-
-            return saved;
-
-        } catch (IOException e) {
-            throw new RuntimeException("Fehler beim Hochladen der Datei: " + e.getMessage(), e);
+            // delegate storage to infrastructure layer
+            storedFilePath = fileStorage.store(file);
+        } catch (IOException ex) {
+            // if FileStorageService still throws IOException, translate it here
+            throw new FileStorageException("Fehler beim Hochladen der Datei", ex);
         }
+
+        // create aggregate
+        var document = Document.builder()
+                .name(file.getOriginalFilename())
+                .contentType(file.getContentType())
+                .sizeBytes(file.getSize())
+                .status("uploaded")
+                .createdAt(OffsetDateTime.now())
+                .lastEdited(OffsetDateTime.now())
+                .build();
+
+        // attach tags (create on demand)
+        if (tagNames != null) {
+            for (var tn : tagNames) {
+                var tag = tags.findByNameIgnoreCase(tn)
+                        .orElseGet(() -> tags.save(Tag.builder().name(tn.trim()).build()));
+                document.getTags().add(tag);
+            }
+        }
+
+        // persist
+        var saved = docs.save(document);
+
+        // publish domain event after successful DB write
+        publishUploadedEvent(saved, storedFilePath);
+
+        return saved;
     }
 
     @Transactional(readOnly = true)
     public List<Document> findAll() { return docs.findAll(); }
 
-    @Transactional(readOnly = true) public Document get(long id){ return docs.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found: " + id));}
+    @Transactional(readOnly = true)
+    public Document get(long id) {
+        return docs.findById(id)
+                .orElseThrow(() -> new DocumentNotFoundException(id));
+    }
 
     @Transactional
     public Document update(long id, String name, String ct, Long size, String status, Collection<String> tagNames){
@@ -92,7 +97,14 @@ public class DocumentService {
         return d;
     }
 
-    @Transactional public void delete(long id){ docs.deleteById(id); }
+    @Transactional
+    public void delete(long id) {
+        // ensure existence first to surface 404
+        if (!docs.existsById(id)) {
+            throw new DocumentNotFoundException(id);
+        }
+        docs.deleteById(id);
+    }
 
     private void publishUploadedEvent(Document saved, String storagePath) {
         var event = DocumentUploadedEvent.builder()
