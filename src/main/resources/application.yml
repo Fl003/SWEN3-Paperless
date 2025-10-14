@@ -28,3 +28,5 @@ spring:
 paperless:
   kafka:
     topic: paperless.documents
+    org.springframework.beans.factory: DEBUG
+    org.springframework.context.annotation: DEBUG
