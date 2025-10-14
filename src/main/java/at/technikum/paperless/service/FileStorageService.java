@@ -1,5 +1,6 @@
 package at.technikum.paperless.service;
 
+import at.technikum.paperless.exception.FileStorageException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,15 +27,15 @@ public class FileStorageService {
         Files.createDirectories(Path.of(storageLocation));
     }
 
-    public String store(MultipartFile file) throws IOException {
-        // Generiere einen eindeutigen Dateinamen
-        String uniqueFileName = generateUniqueFileName(file.getOriginalFilename());
-        Path targetLocation = Path.of(storageLocation, uniqueFileName);
-
-        // Kopiere die Datei in das Zielverzeichnis
-        Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-
-        return targetLocation.toString();
+    public String store(MultipartFile file) {
+        try {
+            String uniqueFileName = generateUniqueFileName(file.getOriginalFilename());
+            Path targetLocation = Path.of(storageLocation, uniqueFileName);
+            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+            return targetLocation.toString();
+        } catch (IOException ex) {
+            throw new FileStorageException("could not store file", ex);
+        }
     }
 
     private String generateUniqueFileName(String originalFilename) {
