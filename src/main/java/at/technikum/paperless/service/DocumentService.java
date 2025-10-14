@@ -2,6 +2,7 @@ package at.technikum.paperless.service;
 
 import at.technikum.paperless.domain.Document;
 import at.technikum.paperless.domain.Tag;
+import at.technikum.paperless.domain.User;
 import at.technikum.paperless.repository.DocumentRepository;
 import at.technikum.paperless.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class DocumentService {
     private final DocumentEventsProducer eventsProducer;
 
     @Transactional
-    public Document uploadFile(MultipartFile file, Collection<String> tagNames) {
+    public Document uploadFile(MultipartFile file, Collection<String> tagNames, User author) {
         try {
             // Speichere die Datei
             String storedFilePath = fileStorage.store(file);
@@ -38,13 +39,13 @@ public class DocumentService {
             // Erstelle das Document-Objekt mit Daten aus der Datei
             var document = Document.builder()
                     .name(file.getOriginalFilename())
+                    .author(author)
                     .contentType(file.getContentType())
                     .sizeBytes(file.getSize())
                     .status("uploaded")
                     .createdAt(OffsetDateTime.now())
                     .lastEdited(OffsetDateTime.now())
                     .build();
-
             // Falls Tags zugewiesen wurden
             if (tagNames != null) {
                 for (var tn : tagNames) {
@@ -53,7 +54,7 @@ public class DocumentService {
                     document.getTags().add(tag);
                 }
             }
-
+            log.info("Author before save: {}", document.getAuthor());
             // Speichere in der Datenbank
             var saved = docs.save(document);
 

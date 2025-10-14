@@ -56,6 +56,8 @@ paths:
                 $ref: '#/components/schemas/DocumentResponse'
         '404':
           $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
     put:
       tags: [documents]
@@ -96,6 +98,11 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error'}
     NotFound:
       description: Resource not found
       content:
