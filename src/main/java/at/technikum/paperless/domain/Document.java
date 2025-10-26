@@ -23,6 +23,8 @@ public class Document {
 
     @Column(nullable = false) private String contentType;
     @Column(nullable = false) private long   sizeBytes;
+    @Column(length = 128) private String storageBucket;
+    @Column(length = 512) private String storageKey;
     @Column(nullable = false) private String status;      // uploaded|ocrdone|indexed
     @Column(nullable = false) private OffsetDateTime createdAt;
     @Column(nullable = false) private OffsetDateTime lastEdited;
