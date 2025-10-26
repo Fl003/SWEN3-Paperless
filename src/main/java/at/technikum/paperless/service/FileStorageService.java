@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Service @RequiredArgsConstructor
-public class FileStorageService {
+public abstract class FileStorageService {
 
     @Value( "${storage.location}")
     private String storageLocation;
@@ -47,4 +47,6 @@ public class FileStorageService {
 
         return timestamp + "_" + randomString + extension;
     }
+
+    public abstract String store(MultipartFile file, String objectKeyHint);
 }
