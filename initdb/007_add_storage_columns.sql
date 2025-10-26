@@ -1,0 +1,4 @@
+ALTER TABLE document
+    ADD COLUMN IF NOT EXISTS storage_bucket VARCHAR(128),
+    ADD COLUMN IF NOT EXISTS storage_key    VARCHAR(512),
+    ADD COLUMN IF NOT EXISTS size_bytes     BIGINT;
