@@ -15,7 +15,7 @@ public class DocumentEventsProducer {
 
     public DocumentEventsProducer(
             KafkaTemplate<String, DocumentUploadedEvent> kafka,
-            @Value("${paperless.kafka.topic}") String topic) {
+            @Value("${paperless.kafka.out-topic}") String topic) {
         this.kafka = kafka;
         this.topic = topic;
     }
