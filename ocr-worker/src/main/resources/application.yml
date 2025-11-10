@@ -1,20 +1,57 @@
 spring:
   application:
     name: ocr-worker
-  server:
-    port: 8085
+
   main:
-    web-application-type: none
+    web-application-type: none   # Kein Webserver starten
+
+  server:
+    port: 8085                   # nur relevant, wenn du REST debuggen willst
+
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+
     consumer:
-      group-id: ocr-worker-group
+      group-id: ${APP_KAFKA_GROUP:ocr-worker}
       auto-offset-reset: earliest
+
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
       properties:
         spring.json.trusted.packages: "at.technikum.paperless.*"
         spring.json.value.default.type: "at.technikum.paperless.events.DocumentUploadedEvent"
+
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+
+# -----------------------------
+# MinIO (S3) Storage Config
+# -----------------------------
+
+storage:
+  s3:
+    endpoint: ${STORAGE_S3_ENDPOINT:http://minio:9000}
+    region: ${STORAGE_S3_REGION:us-east-1}
+    accessKey: ${STORAGE_S3_ACCESS_KEY:minio}
+    secretKey: ${STORAGE_S3_SECRET_KEY:minio123}
+    bucket: ${STORAGE_S3_BUCKET:paperless}
+    pathStyle: true
+
+
+# -----------------------------
+# OCR Config
+# -----------------------------
+
+app:
+  ocr:
+    lang: deu+eng
+    psm: 6
+    timeoutMs: 20000
+
+  kafka:
+    in-topic: ${APP_KAFKA_IN_TOPIC:paperless.documents}
+    out-topic: ${APP_KAFKA_OUT_TOPIC:ocr.results}
+    group: ocr-worker

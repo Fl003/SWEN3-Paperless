@@ -77,6 +77,8 @@ services:
 
         # Kafka connection for Spring Boot
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_KAFKA_IN_TOPIC: ocr.results
+      APP_KAFKA_OUT_TOPIC: paperless.documents
 
       # S3/MinIO config for uploads
       S3_ENDPOINT: http://minio:9000
@@ -95,18 +97,6 @@ services:
     networks:
       - appnet
 
-  # OCR Worker (consumer)
-  ocr-worker:
-    build: ./ocr-worker
-    container_name: paperless-ocr-worker
-    environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-    depends_on:
-      kafka:
-        condition: service_started
-    networks:
-      - appnet
-
   ui:
     build: ./ui
     depends_on:
@@ -115,6 +105,38 @@ services:
       - "8080:80"          # browser uses http://localhost:8080
     networks:
       - appnet
+
+  # OCR Worker (consumer)
+  ocr-worker:
+    build: ./ocr-worker
+    container_name: paperless-ocr-worker
+    environment:
+      # Kafka
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_KAFKA_IN_TOPIC: paperless.documents
+      APP_KAFKA_OUT_TOPIC: ocr.results
+
+      # OCR Defaults
+      OCR_LANG: deu+eng
+      OCR_PSM: "6"
+      OCR_TIMEOUT_MS: "20000"
+
+      # MinIO
+      STORAGE_S3_ENDPOINT: http://minio:9000
+      STORAGE_S3_ACCESS_KEY: minio
+      STORAGE_S3_SECRET_KEY: minio123
+      STORAGE_S3_BUCKET: paperless
+
+      # (optional) Tesseract data path (meist nicht nötig, schadet aber nicht)
+      TESSDATA_PREFIX: /usr/share/tesseract-ocr/5/tessdata
+
+    depends_on:
+      - kafka
+      - minio
+    networks:
+      - appnet
+
+
 
   minio:
     image: minio/minio:latest

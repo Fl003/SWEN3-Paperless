@@ -10,6 +10,10 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -62,5 +66,23 @@ public class S3StorageService implements FileStorageService {
                 .getBytes(StandardCharsets.UTF_8).length > 0 ? original : "upload.bin";
 
         return "docs/" + UUID.randomUUID() + "-" + safeName;
+    }
+
+    public byte[] load(String key) {
+        GetObjectRequest req = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
+        try (ResponseInputStream<GetObjectResponse> is = s3.getObject(req)) {
+            return is.readAllBytes();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read from S3 bucket=" + bucket + " key=" + key, e);
+        }
+    }
+
+    public String getContentType(String key) {
+        var head = s3.headObject(HeadObjectRequest.builder()
+                .bucket(bucket).key(key).build());
+        return head.contentType(); // kann null sein -> unten fallback
     }
 }
