@@ -18,7 +18,7 @@ import java.util.Map;
 @Slf4j
 public class OcrWorkerService {
 
-    private final S3StorageClient storage;  // dein Service von oben (jetzt mit load/getContentType)
+    private final S3StorageClient storage;
     private final OcrEngine ocr;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper om = new ObjectMapper();
