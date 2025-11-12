@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.*;
 
@@ -32,10 +31,10 @@ public class DocumentService {
 
     @Transactional
     public Document uploadFile(MultipartFile file, Collection<String> tagNames, User author) {
-        final String storedFilePath;
+        // upload the file to MinIO via S3StorageService (returns the S3 object key, e.g. "docs/abc.pdf")
+        final String s3Key;
         try {
-            // delegate storage to infrastructure layer
-            storedFilePath = fileStorage.store(file);
+            s3Key = fileStorage.store(file);
         } catch (Exception ex) {
             // if FileStorageService still throws Exception, translate it here
             throw new FileStorageException("Fehler beim Hochladen der Datei", ex);
@@ -47,6 +46,8 @@ public class DocumentService {
                 .author(author)
                 .contentType(file.getContentType())
                 .sizeBytes(file.getSize())
+                .storageBucket("paperless")
+                .storageKey(s3Key)
                 .status("uploaded")
                 .createdAt(OffsetDateTime.now())
                 .lastEdited(OffsetDateTime.now())
@@ -65,8 +66,8 @@ public class DocumentService {
         // persist
         var saved = docs.save(document);
 
-        // publish domain event after successful DB write
-        publishUploadedEvent(saved, storedFilePath);
+        // publish event
+        publishUploadedEvent(saved, s3Key);
 
         return saved;
     }

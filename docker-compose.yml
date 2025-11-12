@@ -3,8 +3,8 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: paperless
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: paperless
+      POSTGRES_PASSWORD: paperless
     ports:
       - "5432:5432"
     volumes:
@@ -77,22 +77,22 @@ services:
 
         # Kafka connection for Spring Boot
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_KAFKA_IN_TOPIC: ocr.results
+      APP_KAFKA_OUT_TOPIC: paperless.documents
+
+      # S3/MinIO config for uploads
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: us-east-1
+      S3_BUCKET: paperless
+      S3_ACCESS_KEY: minio
+      S3_SECRET_KEY: minio123
+      S3_PATH_STYLE: "true"   # important for minio
     depends_on:
       db:
         condition: service_healthy
       kafka:
         condition: service_started
-    networks:
-      - appnet
-
-  # === Empty OCR Worker (consumer) ===
-  ocr-worker:
-    build: ./ocr-worker
-    container_name: paperless-ocr-worker
-    environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-    depends_on:
-      kafka:
+      minio:
         condition: service_started
     networks:
       - appnet
@@ -106,8 +106,71 @@ services:
     networks:
       - appnet
 
+  # OCR Worker (consumer)
+  ocr-worker:
+    build: ./ocr-worker
+    container_name: paperless-ocr-worker
+    environment:
+      # Kafka
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_KAFKA_IN_TOPIC: paperless.documents
+      APP_KAFKA_OUT_TOPIC: ocr.results
+
+      # OCR Defaults
+      OCR_LANG: deu+eng
+      OCR_PSM: "6"
+      OCR_TIMEOUT_MS: "20000"
+
+      # MinIO
+      STORAGE_S3_ENDPOINT: http://minio:9000
+      STORAGE_S3_ACCESS_KEY: minio
+      STORAGE_S3_SECRET_KEY: minio123
+      STORAGE_S3_BUCKET: paperless
+
+      # (optional) Tesseract data path (meist nicht nötig, schadet aber nicht)
+      TESSDATA_PREFIX: /usr/share/tesseract-ocr/5/tessdata
+
+    depends_on:
+      - kafka
+      - minio
+    networks:
+      - appnet
+
+
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9000:9000" #S3 API
+      - "9001:9001" #web console
+    volumes:
+      - minio-data:/data
+    networks:
+      - appnet
+
+  # helper to create buckets
+  minio-setup:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+        until (/usr/bin/mc alias set local http://minio:9000 minio minio123); do
+          echo 'waiting for minio...'; sleep 2;
+        done;
+        /usr/bin/mc mb -p local/paperless || true;
+        echo 'minio bucket ready: paperless';
+      "
+    networks:
+      - appnet
+
 volumes:
   dbdata:
+  minio-data:
 
 networks:
   appnet:
