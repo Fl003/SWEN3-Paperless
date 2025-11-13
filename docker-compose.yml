@@ -62,7 +62,7 @@ services:
   rest:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: paperlessREST/Dockerfile
     container_name: paperless-rest
     ports:
       - "8081:8081"
