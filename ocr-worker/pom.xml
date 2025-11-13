@@ -5,30 +5,15 @@
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>at.technikum.paperless</groupId>
+        <artifactId>paperless</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
 
-    <groupId>at.technikum.paperless</groupId>
     <artifactId>ocr-worker</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>paperless-ocr-worker</name>
     <description>Kafka-based OCR Worker for the Paperless project</description>
-    <packaging>jar</packaging>
-
-    <properties>
-        <java.version>21</java.version>
-        <spring.boot.version>3.3.4</spring.boot.version>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring.boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -41,11 +26,6 @@
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
