@@ -62,7 +62,7 @@ services:
   rest:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: paperlessREST/Dockerfile
     container_name: paperless-rest
     ports:
       - "8081:8081"
@@ -108,7 +108,9 @@ services:
 
   # OCR Worker (consumer)
   ocr-worker:
-    build: ./ocr-worker
+    build:
+      context: .
+      dockerfile: ocr-worker/Dockerfile
     container_name: paperless-ocr-worker
     environment:
       # Kafka
