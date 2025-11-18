@@ -5,9 +5,12 @@
 ############################
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY ../pom.xml .
-COPY src ./src
-RUN mvn -DskipTests clean package
+COPY . .
+RUN mvn -f pom.xml -pl paperlessREST -am -DskipTests clean package #build module rest and everything what it depends on
+RUN echo "===== ACTUAL POM IN DOCKER ====="
+RUN cat /app/pom.xml
+RUN echo "===== FILES IN /app ====="
+RUN ls -R /app
 
 ############################
 # 2) runtime image

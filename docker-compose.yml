@@ -108,7 +108,9 @@ services:
 
   # OCR Worker (consumer)
   ocr-worker:
-    build: ./ocr-worker
+    build:
+      context: .
+      dockerfile: ocr-worker/Dockerfile
     container_name: paperless-ocr-worker
     environment:
       # Kafka

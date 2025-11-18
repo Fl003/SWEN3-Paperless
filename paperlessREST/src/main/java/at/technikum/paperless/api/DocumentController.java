@@ -68,6 +68,7 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
     public DocumentDTO get(@PathVariable long id) {
         var document = service.get(id);
         return mapper.map(document);
