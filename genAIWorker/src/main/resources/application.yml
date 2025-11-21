@@ -1,3 +1,13 @@
+server:
+  port: 8090
+
+logging:
+  level:
+    org.apache.kafka: WARN
+    org.apache.kafka.clients.consumer: WARN
+    org.apache.kafka.clients.NetworkClient: ERROR
+
+
 spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
