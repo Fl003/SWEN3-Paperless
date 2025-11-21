@@ -20,6 +20,7 @@
 	<modules>
 		<module>paperlessREST</module>
 		<module>ocr-worker</module>
+		<module>genAIWorker</module>
 	</modules>
 
     <dependencyManagement>

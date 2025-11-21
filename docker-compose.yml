@@ -170,6 +170,21 @@ services:
     networks:
       - appnet
 
+  gemini-server:
+    build:
+      context: .
+      dockerfile: genAIWorker/Dockerfile
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_KAFKA_IN_TOPIC: ocr.results
+      APP_KAFKA_OUT_TOPIC: genai.results
+    ports:
+        - "8090:8090"
+    env_file:
+     - .env
+    networks:
+      - appnet
+
 volumes:
   dbdata:
   minio-data:

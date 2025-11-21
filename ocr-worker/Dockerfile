@@ -1,11 +1,6 @@
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY . .
-RUN echo "====== FILES IN /app ======"
-RUN ls -R /app
-
-RUN echo "====== CONTENT OF /app/pom.xml ======"
-RUN cat /app/pom.xml
 
 #Build only ocr-worker
 RUN mvn -pl ocr-worker -am -DskipTests clean package
