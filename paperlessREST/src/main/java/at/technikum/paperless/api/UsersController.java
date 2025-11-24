@@ -3,6 +3,7 @@ package at.technikum.paperless.api;
 
 import at.technikum.paperless.service.UserLoginService;
 import at.technikum.paperless.utils.JWTUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import at.technikum.paperless.dto.AuthRequest;
 
+@Slf4j
 @RestController
 public class UsersController {
     public record TokenResponse(String token) {}
@@ -22,11 +24,13 @@ public class UsersController {
 
     @PostMapping("/api/v1/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
+        log.debug("Login request received: {}", authRequest);
         var authentification = new UsernamePasswordAuthenticationToken(
                 authRequest.getUsername(), authRequest.getPassword());
         authenticationManager.authenticate(authentification);
 
         var token = jwtUtils.generateToken(authRequest.getUsername());
+
         return ResponseEntity.ok(new TokenResponse(token));
         //return "dummy-token";
     }

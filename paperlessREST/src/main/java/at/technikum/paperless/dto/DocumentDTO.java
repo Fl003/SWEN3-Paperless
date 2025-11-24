@@ -18,6 +18,7 @@ public class DocumentDTO {
     private String contentType;
     private long sizeBytes;
     private String status;      // uploaded|ocrdone|indexed
+    private String summary;
     private OffsetDateTime createdAt;
     private OffsetDateTime lastEdited;
     private List<String> tags;
