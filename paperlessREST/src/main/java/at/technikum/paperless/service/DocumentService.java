@@ -109,6 +109,17 @@ public class DocumentService {
         docs.deleteById(id);
     }
 
+    @Transactional
+    public void saveSummary(String documentId, String summery) {
+        try {
+            Long id = Long.parseLong(documentId);
+            docs.saveSummaryById(id, summery);
+        } catch (NumberFormatException e) {
+            log.error("Invalid documentId received from Kafka: {}", documentId);
+            throw e;
+        }
+    }
+
     private void publishUploadedEvent(Document saved, String storagePath) {
         var event = DocumentUploadedEvent.builder()
                 .eventId(UUID.randomUUID().toString())

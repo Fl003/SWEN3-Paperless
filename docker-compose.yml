@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
+    platform: linux/amd64
     environment:
       POSTGRES_DB: paperless
       POSTGRES_USER: paperless
@@ -19,7 +20,7 @@ services:
       - appnet
 
   adminer:
-    image: adminer:4
+    image: adminer:4.8.1
     ports:
       - "9091:8080"
     depends_on:
@@ -79,6 +80,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       APP_KAFKA_IN_TOPIC: ocr.results
       APP_KAFKA_OUT_TOPIC: paperless.documents
+      APP_KAFKA_SUMMARY_TOPIC: genai.results
 
       # S3/MinIO config for uploads
       S3_ENDPOINT: http://minio:9000
@@ -142,6 +144,7 @@ services:
 
   minio:
     image: minio/minio:latest
+    platform: linux/amd64
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minio
@@ -157,6 +160,7 @@ services:
   # helper to create buckets
   minio-setup:
     image: minio/mc:latest
+    platform: linux/amd64
     depends_on:
       - minio
     entrypoint: >
@@ -167,6 +171,21 @@ services:
         /usr/bin/mc mb -p local/paperless || true;
         echo 'minio bucket ready: paperless';
       "
+    networks:
+      - appnet
+
+  gemini-server:
+    build:
+      context: .
+      dockerfile: genAIWorker/Dockerfile
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_KAFKA_IN_TOPIC: ocr.results
+      APP_KAFKA_OUT_TOPIC: genai.results
+    ports:
+        - "8090:8090"
+    env_file:
+     - .env
     networks:
       - appnet
 

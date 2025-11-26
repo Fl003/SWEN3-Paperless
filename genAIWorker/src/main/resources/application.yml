@@ -1,0 +1,29 @@
+server:
+  port: 8090
+
+logging:
+  level:
+    org.apache.kafka: WARN
+    org.apache.kafka.clients.consumer: WARN
+    org.apache.kafka.clients.NetworkClient: ERROR
+
+
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+
+    consumer:
+      group-id: genai-worker
+      auto-offset-reset: earliest
+
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+paperless:
+  kafka:
+    in-topic: ${APP_KAFKA_IN_TOPIC:ocr.results}
+    out-topic: ${APP_KAFKA_OUT_TOPIC:genai.results}

@@ -31,3 +31,4 @@ paperless:
   kafka:
     out-topic: ${APP_KAFKA_OUT_TOPIC:paperless.documents}
     in-topic: ${APP_KAFKA_IN_TOPIC:ocr.results}
+    summary-topic: ${APP_KAFKA_SUMMARY_TOPIC:genai.results}
