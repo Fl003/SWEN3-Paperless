@@ -18,26 +18,26 @@ public class OcrResultListener {
     private final ObjectMapper objectMapper;
     private final GenAiService genAiService;
 
-    @Value("${paperless.kafka.out-topic}")
+    @Value("вваваа")
     private String outTopic;
-
-    @KafkaListener(topics = "${paperless.kafka.in-topic}", groupId = "genai-worker")
-    public void handleOcrResponse(String message) {
-        log.info("handleOcrResponse");
-        try{
-            OcrResultEvent event = objectMapper.readValue(message, OcrResultEvent.class);
-            String summery = genAiService.generateSummery(event.getText());
-            SummaryResultEvent resultEvent = new SummaryResultEvent(
-                event.getDocumentId(),
-                summery
-            );
-            log.info("handleOcrResponse got result from genAiService: " + summery);
-            kafkaTemplate.send(outTopic, objectMapper.writeValueAsString(resultEvent));
-        } catch (JsonProcessingException ex) {
-            log.error("Failed to parse OCR message into OcrResultEvent. Raw message={}", message, ex);
-        }catch (Exception ex) {
-            log.error("Unexpected error during OCR → GenAI processing. message={}, error={}",
-                    message, ex.getMessage(), ex);
-        }
-    }
+    //to-do should not listen for oce, but for file ulpload
+//    @KafkaListener(topics = "${paperless.kafka.in-topic}", groupId = "genai-worker")
+//    public void handleOcrResponse(String message) {
+//        log.info("handleOcrResponse");
+//        try{
+//            OcrResultEvent event = objectMapper.readValue(message, OcrResultEvent.class);
+//            String summery = genAiService.generateSummery(event.getText());
+//            SummaryResultEvent resultEvent = new SummaryResultEvent(
+//                event.getDocumentId(),
+//                summery
+//            );
+//            log.info("handleOcrResponse got result from genAiService: " + summery);
+//            kafkaTemplate.send(outTopic, objectMapper.writeValueAsString(resultEvent));
+//        } catch (JsonProcessingException ex) {
+//            log.error("Failed to parse OCR message into OcrResultEvent. Raw message={}", message, ex);
+//        }catch (Exception ex) {
+//            log.error("Unexpected error during OCR → GenAI processing. message={}, error={}",
+//                    message, ex.getMessage(), ex);
+//        }
+//    }
 }
