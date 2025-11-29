@@ -17,13 +17,18 @@ spring:
       auto-offset-reset: earliest
 
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.value.default.type: at.technikum.paperless.genaiworker.kafka.DocumentUploadedEvent
+        spring.json.trusted.packages: at.technikum.paperless.genaiworker.kafka
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
-paperless:
+app:
   kafka:
-    in-topic: ${APP_KAFKA_IN_TOPIC:ocr.results}
+    in-topic: ${APP_KAFKA_IN_TOPIC:paperless.documents}
     out-topic: ${APP_KAFKA_OUT_TOPIC:genai.results}
+    group: genAIWorker
