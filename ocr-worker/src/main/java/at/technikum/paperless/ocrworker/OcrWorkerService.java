@@ -26,7 +26,7 @@ public class OcrWorkerService {
     @Value("${app.kafka.out-topic:ocr.results}")
     private String outTopic;
 
-    @KafkaListener(topics = "${app.kafka.in-topic}", groupId = "${app.kafka.group}")
+
     public void onDocumentUploaded(DocumentUploadedEvent e) {
         long t0 = System.currentTimeMillis();
         try {

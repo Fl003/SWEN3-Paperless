@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
+    platform: linux/amd64
     environment:
       POSTGRES_DB: paperless
       POSTGRES_USER: paperless
@@ -19,7 +20,7 @@ services:
       - appnet
 
   adminer:
-    image: adminer:4
+    image: adminer:4.8.1
     ports:
       - "9091:8080"
     depends_on:
@@ -62,7 +63,7 @@ services:
   rest:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: paperlessREST/Dockerfile
     container_name: paperless-rest
     ports:
       - "8081:8081"
@@ -79,6 +80,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       APP_KAFKA_IN_TOPIC: ocr.results
       APP_KAFKA_OUT_TOPIC: paperless.documents
+      APP_KAFKA_SUMMARY_TOPIC: genai.results
 
       # S3/MinIO config for uploads
       S3_ENDPOINT: http://minio:9000
@@ -108,7 +110,9 @@ services:
 
   # OCR Worker (consumer)
   ocr-worker:
-    build: ./ocr-worker
+    build:
+      context: .
+      dockerfile: ocr-worker/Dockerfile
     container_name: paperless-ocr-worker
     environment:
       # Kafka
@@ -140,6 +144,7 @@ services:
 
   minio:
     image: minio/minio:latest
+    platform: linux/amd64
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minio
@@ -155,6 +160,7 @@ services:
   # helper to create buckets
   minio-setup:
     image: minio/mc:latest
+    platform: linux/amd64
     depends_on:
       - minio
     entrypoint: >
@@ -165,6 +171,28 @@ services:
         /usr/bin/mc mb -p local/paperless || true;
         echo 'minio bucket ready: paperless';
       "
+    networks:
+      - appnet
+
+  gemini-server:
+    build:
+      context: .
+      dockerfile: genAIWorker/Dockerfile
+    environment:
+      # Kafka
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_KAFKA_IN_TOPIC: paperless.documents
+      APP_KAFKA_OUT_TOPIC: genai.results
+
+      # MinIO
+      STORAGE_S3_ENDPOINT: http://minio:9000
+      STORAGE_S3_ACCESS_KEY: minio
+      STORAGE_S3_SECRET_KEY: minio123
+      STORAGE_S3_BUCKET: paperless
+    ports:
+        - "8090:8090"
+    env_file:
+     - .env
     networks:
       - appnet
 

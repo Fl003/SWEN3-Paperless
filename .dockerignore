@@ -6,3 +6,4 @@ target
 **/.idea
 Dockerfile
 README.md
+.env
