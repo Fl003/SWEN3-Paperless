@@ -20,6 +20,9 @@ public class IndexedDocument {
     @Field(type = FieldType.Keyword)
     private String tenantId;
 
+    @Field(type = FieldType.Long)
+    private Long ownerId;
+
     @Field(type = FieldType.Keyword)
     private String contentType;
 

@@ -23,5 +23,6 @@ public class DocumentUploadedEvent {
     private String storagePath;
     private String uploadedBy;
     private String tenantId;
+    private Long ownerId;
     private String traceId;
 }

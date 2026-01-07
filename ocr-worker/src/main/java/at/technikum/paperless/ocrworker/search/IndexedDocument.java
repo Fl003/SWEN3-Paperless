@@ -16,6 +16,7 @@ public class IndexedDocument {
 
     @Id
     private String documentId;
+    private Long ownerId;
 
     private String tenantId;
     private String contentType;

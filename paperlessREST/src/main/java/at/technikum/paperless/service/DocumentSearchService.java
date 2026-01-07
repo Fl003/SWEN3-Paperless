@@ -21,7 +21,7 @@ public class DocumentSearchService {
 
     private static final String INDEX_NAME = "documents";
 
-    public List<DocumentSearchResultDTO> search(String queryText, String tenantId, int page, int size) {
+    public List<DocumentSearchResultDTO> search(String queryText, Long ownerId, int page, int size) {
         if (queryText == null || queryText.isBlank()) {
             return List.of();
         }
@@ -34,13 +34,11 @@ public class DocumentSearchService {
                             .query(queryText)
                     ));
 
-                    // optional filter by tenant
-                    if (tenantId != null && !tenantId.isBlank()) {
-                        b.filter(f -> f.term(t -> t
-                                .field("tenantId.keyword")
-                                .value(tenantId)
-                        ));
-                    }
+                    //filter by document owner (current user)
+                    b.filter(f -> f.term(t -> t
+                            .field("ownerId")
+                            .value(ownerId)
+                            ));
                     return b;
                 }))
                 .withPageable(PageRequest.of(Math.max(page, 0), Math.max(size, 1)))
