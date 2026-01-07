@@ -4,7 +4,9 @@ import at.technikum.paperless.domain.Document;
 import at.technikum.paperless.domain.Tag;
 import at.technikum.paperless.domain.User;
 import at.technikum.paperless.dto.DocumentDTO;
+import at.technikum.paperless.dto.DocumentSearchResultDTO;
 import at.technikum.paperless.mapper.DocumentMapper;
+import at.technikum.paperless.service.DocumentSearchService;
 import at.technikum.paperless.service.DocumentService;
 import at.technikum.paperless.utils.UserUtils;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ import java.util.Map;
 public class DocumentController {
 
     private final DocumentService service;
+    private final DocumentSearchService searchService;
     @Autowired
     private DocumentMapper mapper;
     @Autowired
@@ -41,6 +44,20 @@ public class DocumentController {
         return documents.stream()
                 .map(mapper::map)
                 .toList();
+    }
+
+    // elastic search
+    @GetMapping("/search")
+    public List<DocumentSearchResultDTO> search(
+            @RequestParam(name = "q") String query,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        User currentUser = userUtils.getCurrentUser();
+
+        String tenantId = currentUser.getUsername();
+
+        return searchService.search(query, tenantId, page, size);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

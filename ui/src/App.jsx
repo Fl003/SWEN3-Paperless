@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
+import { NavLink } from "react-router-dom";
 import DocumentsListView from './pages/DocumentsListView.jsx'
 import DocumentDetails from './pages/DocumentDetails.jsx'
 import ListIcon from './icons/list.svg'
@@ -10,6 +11,7 @@ import DocumentsCardsView from "./pages/DocumentsCardsView.jsx";
 import { fetchWithAuth } from './services/api.js'
 import DeleteDocumentModal from "./shared/DeleteDocumentModal.jsx";
 import LogoutButton from "./shared/LogoutButton.jsx";
+import Search from "./pages/Search.jsx";
 
 export default function App() {
     const location = useLocation();
@@ -48,7 +50,10 @@ export default function App() {
             <div className="sidebar">
                 <h1>PAPERLESS</h1>
                 <nav>
-                    <Link to="/">Dashboard</Link>
+                    <Link to="/">Documents</Link>
+                    <NavLink to="/search" className="sidebar-link">
+                        Search
+                    </NavLink>
                 </nav>
                 <div className="sidebar-bottom">
                     <div className="logout-wrapper">
@@ -92,6 +97,7 @@ export default function App() {
                         <Route path="/document/:id" element={
                             <DocumentDetails />
                         } />
+                        <Route path="/search" element={<Search />} />
                     </Routes>
                 </main>
             </div>

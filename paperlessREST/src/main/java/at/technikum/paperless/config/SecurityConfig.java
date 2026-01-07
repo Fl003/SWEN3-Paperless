@@ -31,9 +31,6 @@ import java.time.OffsetDateTime;
 @EnableWebSecurity //integration spring-security
 public class SecurityConfig {
     @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
     private JwtDecoder jwtDecoder;
 
     @Autowired
