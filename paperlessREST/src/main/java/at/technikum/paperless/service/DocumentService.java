@@ -129,7 +129,8 @@ public class DocumentService {
                 .contentType(saved.getContentType())
                 .storagePath(storagePath)
                 .uploadedBy("system")       // TODO later: replace with authenticated user
-                .tenantId("default")        // TODO later: tenant logic if needed
+                .tenantId("default")       // TODO later: tenant logic if needed
+                .ownerId(saved.getAuthor().getId())
                 .traceId(UUID.randomUUID().toString())
                 .build();
 

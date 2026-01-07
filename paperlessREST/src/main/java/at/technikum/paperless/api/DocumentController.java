@@ -54,10 +54,10 @@ public class DocumentController {
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
         User currentUser = userUtils.getCurrentUser();
-
-        String tenantId = currentUser.getUsername();
-
-        return searchService.search(query, tenantId, page, size);
+        Long userId = currentUser.getId();
+        log.info("SEARCH called: query='{}', ownerId='{}', page={}, size={}",
+                query, userId, page, size);
+        return searchService.search(query, userId, page, size);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

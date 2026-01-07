@@ -29,12 +29,13 @@ public class OcrWorkerService {
     @Value("${app.kafka.out-topic:ocr.results}")
     private String outTopic;
 
-    @KafkaListener(topics = "${app.kafka.in-topic}", groupId = "${app.kafka.group:ocr-worker}")
-    public void handleDocumentUploaded(DocumentUploadedEvent e) {
-        onDocumentUploaded(e);
-    }
-
+    //@KafkaListener(topics = "${app.kafka.in-topic}", groupId = "${app.kafka.group:ocr-worker}")
+    //public void handleDocumentUploaded(DocumentUploadedEvent e) {
+        //onDocumentUploaded(e);
+    //}
+    @KafkaListener(topics = "${app.kafka.in-topic}", groupId = "${app.kafka.group}")
     public void onDocumentUploaded(DocumentUploadedEvent e) {
+        log.info("Received uploaded document: {}", e);
         long t0 = System.currentTimeMillis();
         String ct = null;
 
@@ -56,6 +57,7 @@ public class OcrWorkerService {
             // Index into Elasticsearch
             indexingService.indexDone(
                     e.getDocumentId(),
+                    e.getOwnerId(),
                     e.getTenantId(),
                     safeCt,
                     duration,
@@ -84,6 +86,7 @@ public class OcrWorkerService {
             try {
                 indexingService.indexError(
                         e.getDocumentId(),
+                        e.getOwnerId(),
                         e.getTenantId(),
                         safeCt,
                         ex.getMessage()
