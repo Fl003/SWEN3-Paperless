@@ -32,6 +32,5 @@ public class UsersController {
         var token = jwtUtils.generateToken(authRequest.getUsername());
 
         return ResponseEntity.ok(new TokenResponse(token));
-        //return "dummy-token";
     }
 }

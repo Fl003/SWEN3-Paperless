@@ -48,3 +48,15 @@ export async function fetchWithAuth(url, options = {}) {
     if (res.status === 204) return null;
     return handle(res);
 }
+
+export async function searchDocuments(query, page = 0, size = 10) {
+    const params = new URLSearchParams({
+        q: query ?? "",
+        page: String(page),
+        size: String(size),
+    });
+
+    return fetchWithAuth(`/api/v1/documents/search?${params.toString()}`, {
+        method: "GET",
+    });
+}

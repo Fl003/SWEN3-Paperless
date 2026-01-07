@@ -33,6 +33,7 @@ class OcrWorkerServiceTest {
         DocumentUploadedEvent e = new DocumentUploadedEvent();
         e.setEventId("e-1");
         e.setDocumentId("doc-42");
+        e.setOwnerId(1L);
         e.setTraceId("trace-123");
         e.setTenantId("default");
         e.setOriginalFilename("file.pdf");
