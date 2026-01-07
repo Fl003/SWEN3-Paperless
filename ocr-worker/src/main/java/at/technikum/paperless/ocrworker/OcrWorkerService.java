@@ -33,7 +33,7 @@ public class OcrWorkerService {
     public void handleDocumentUploaded(DocumentUploadedEvent e) {
         onDocumentUploaded(e);
     }
-
+    @KafkaListener(topics = "${app.kafka.in-topic}", groupId = "${app.kafka.group}")
     public void onDocumentUploaded(DocumentUploadedEvent e) {
         long t0 = System.currentTimeMillis();
         String ct = null;
