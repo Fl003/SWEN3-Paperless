@@ -1,3 +1,4 @@
+// ui/src/pages/Search.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { searchDocuments } from "../services/api";
@@ -27,7 +28,7 @@ export default function Search() {
 
         try {
             const data = await searchDocuments(trimmed, 0, 20);
-            setResults(Array.isArray(data) ? data : (data?.items ?? []));
+            setResults(Array.isArray(data) ? data : data?.items ?? []);
         } catch (e) {
             setResults([]);
             setError(e?.message ?? "Search failed");
@@ -50,66 +51,89 @@ export default function Search() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const showEmptyState = !loading && !error && results.length === 0 && hasQuery;
+
     return (
         <div className="searchPage">
-            <div className="searchHeader">
-                <div className="paperlessLogo" onClick={() => navigate("/")}>
-                    PAPERLESS
+            {/* Removed the "DOCUMENTS" title by not rendering any page heading here */}
+            <header className="searchHeader">
+                <div className="searchHeaderInner">
+                    <div className="searchHeaderStack">
+                        <button
+                            type="button"
+                            className="paperlessLogo"
+                            onClick={() => navigate("/")}
+                            aria-label="Go to homepage"
+                            title="Go to homepage"
+                        >
+                            PAPERLESS
+                        </button>
+
+                        <form className="searchBar" onSubmit={onSubmit} role="search">
+                            <input
+                                value={q}
+                                onChange={(e) => setQ(e.target.value)}
+                                placeholder="Search your documents…"
+                                aria-label="Search"
+                            />
+
+                            <button
+                                className="btn btn-primary searchBtn"
+                                type="submit"
+                                disabled={!hasQuery || loading}
+                            >
+                                {loading ? "Searching…" : "Search"}
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
-                <form className="searchBar" onSubmit={onSubmit}>
-                    <input
-                        value={q}
-                        onChange={(e) => setQ(e.target.value)}
-                        placeholder="Search your documents…"
-                        aria-label="Search"
-                    />
-                    <button type="submit" disabled={!hasQuery || loading}>
-                        Search
-                    </button>
-                </form>
-            </div>
+                <div className="searchSubline">
+                    {hasQuery && !loading && !error && (
+                        <span className="muted">
+              {results.length} result{results.length === 1 ? "" : "s"} for{" "}
+                            <span className="searchQuery">“{q.trim()}”</span>
+            </span>
+                    )}
+                </div>
+            </header>
 
-            <div className="searchBody">
-                {loading && <div className="searchInfo">Searching…</div>}
+            <main className="searchBody">
                 {error && <div className="searchError">{error}</div>}
-
-                {!loading && !error && results.length === 0 && hasQuery && (
-                    <div className="searchInfo">No results.</div>
-                )}
+                {showEmptyState && <div className="searchInfo">No results.</div>}
 
                 <div className="searchResults">
-                    {results.map((r) => (
-                        <div className="searchResult" key={r.documentId ?? r.id ?? Math.random()}>
-                            <div className="searchResultTop">
-                                <Link
-                                    className="searchResultTitle"
-                                    to={`/document/${encodeURIComponent(r.documentId)}`}
-                                >
-                                    {r.name ?? "(untitled)"}
-                                </Link>
+                    {results.map((r) => {
+                        const id = r.documentId ?? r.id; // API may use documentId
+                        const key = id ?? `${r.name}-${Math.random()}`;
 
-                                {typeof r.score === "number" && (
-                                    <span className="searchResultScore">
-                    score: {r.score.toFixed(2)}
-                  </span>
+                        return (
+                            <div className="searchResult" key={key}>
+                                <div className="searchResultTop">
+                                    <Link
+                                        className="searchResultTitle"
+                                        to={`/document/${encodeURIComponent(id)}`}
+                                    >
+                                        {r.name ?? "(untitled)"}
+                                    </Link>
+                                </div>
+
+                                {r.snippet && (
+                                    <div className="searchResultSnippet">{r.snippet}</div>
                                 )}
-                            </div>
 
-                            {r.snippet && <div className="searchResultSnippet">{r.snippet}</div>}
-
-                            <div className="searchResultMeta">
-                                {r.status && <span className="pill">{r.status}</span>}
-                                {(r.tags || []).slice(0, 8).map((t) => (
-                                    <span className="pill" key={t}>
-                    {t}
-                  </span>
-                                ))}
+                                <div className="searchResultMeta">
+                                    {(r.tags || []).slice(0, 8).map((t) => (
+                                        <span className="pill" key={t}>
+                      {t}
+                    </span>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
-            </div>
+            </main>
         </div>
     );
 }
