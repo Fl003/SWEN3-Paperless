@@ -48,7 +48,6 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-fill-color: transparent;
     position: relative;
     display: inline-block;
 }
@@ -65,13 +64,15 @@ body {
 
 .sidebar nav {
     margin-top: 35px;
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar a {
     position: relative;
     color: white;
     text-decoration: none;
-    margin: 0 8px;
+    margin: 10px 30px;
     padding: 10px 30px;
     border-radius: 10px;
     overflow: hidden;
@@ -137,7 +138,6 @@ body {
 .list-style-switch {
     display: flex;
     border-radius: 8px;
-    border: solid 1px grey;
     margin-right: 20px;
     width: 80px;
     border: solid 1px var(--brand2);
@@ -151,11 +151,11 @@ body {
 }
 
 .list-style-switch button:first-child {
-    border-radius: 8px 0px 0px 8px;
+    border-radius: 8px 0 0 8px;
 }
 
 .list-style-switch button:last-child {
-    border-radius: 0px 8px 8px 0px;
+    border-radius: 0 8px 8px 0;
 }
 
 .list-style-switch button img {
@@ -196,7 +196,7 @@ body {
 
 .card:hover {
     border: solid 2px var(--brand2);
-    box-shadow: 0px 0px 20px -8px var(--brand2);
+    box-shadow: 0 0 20px -8px var(--brand2);
     text-decoration: none;
 }
 
@@ -643,7 +643,7 @@ pre {
 
 .login .input-wrapper input:focus~label,
 .login .input-wrapper input:not(:placeholder-shown)~label {
-    top: 0px;
+    top: 0;
     left: 10px;
     font-size: 0.8rem;
     color: var(--brand2);
@@ -685,7 +685,6 @@ pre {
 }
 
 .paperlessLogo {
-    background: none;
     border: none;
     cursor: pointer;
     font-size: 2.4rem;

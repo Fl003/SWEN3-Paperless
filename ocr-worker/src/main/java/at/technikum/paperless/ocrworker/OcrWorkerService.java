@@ -61,6 +61,7 @@ public class OcrWorkerService {
                     e.getTenantId(),
                     safeCt,
                     duration,
+                    e.getOriginalFilename(),
                     text
             );
 
@@ -73,7 +74,8 @@ public class OcrWorkerService {
                     "status", "DONE",
                     "durationMs", duration,
                     "contentType", safeCt,
-                    "text", text
+                    "text", text,
+                    "name", e.getOriginalFilename()
             );
 
             kafkaTemplate.send(outTopic, e.getDocumentId(), om.writeValueAsString(payload));
@@ -89,7 +91,8 @@ public class OcrWorkerService {
                         e.getOwnerId(),
                         e.getTenantId(),
                         safeCt,
-                        ex.getMessage()
+                        ex.getMessage(),
+                        "ERROR"
                 );
             } catch (Exception idxEx) {
                 log.error("Failed to index ERROR state into Elasticsearch. docId={}", e.getDocumentId(), idxEx);
@@ -103,7 +106,8 @@ public class OcrWorkerService {
                         "traceId", e.getTraceId(),
                         "tenantId", e.getTenantId(),
                         "status", "ERROR",
-                        "error", ex.getMessage()
+                        "error", ex.getMessage(),
+                        "name", e.getOriginalFilename()
                 );
                 kafkaTemplate.send(outTopic, e.getDocumentId(), om.writeValueAsString(err));
             } catch (Exception ignore) {}

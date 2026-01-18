@@ -18,6 +18,7 @@ public class IndexingService {
                           String tenantId,
                           String contentType,
                           long durationMs,
+                          String name,
                           String text) {
         log.error("INDEXING to ES documentId={} tenantId={} ownerId={}", documentId, tenantId, ownerId);
         repo.save(IndexedDocument.builder()
@@ -28,6 +29,7 @@ public class IndexingService {
                 .status("DONE")
                 .durationMs(durationMs)
                 .text(text)
+                .name(name)
                 .indexedAt(Instant.now())
                 .build());
     }
@@ -36,7 +38,8 @@ public class IndexingService {
                            Long ownerId,
                            String tenantId,
                            String contentType,
-                           String errorMessage) {
+                           String errorMessage,
+                            String name) {
 
         repo.save(IndexedDocument.builder()
                 .documentId(documentId)
@@ -45,6 +48,7 @@ public class IndexingService {
                 .contentType(contentType)
                 .status("ERROR")
                 .text(errorMessage)
+                .name(name)
                 .indexedAt(Instant.now())
                 .build());
     }

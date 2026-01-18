@@ -74,7 +74,7 @@ public class DocumentSearchService {
 
         return DocumentSearchResultDTO.builder()
                 .documentId(documentIdLong)
-                .name(null) // not stored in ES currently (can be enriched from DB later)
+                .name(doc.getName())
                 .contentType(doc != null ? doc.getContentType() : null)
                 .status(doc != null ? doc.getStatus() : null)
                 .tags(null) // not stored in ES currently (can be enriched from DB later)

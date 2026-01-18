@@ -37,12 +37,9 @@ export default function Search() {
         }
     }
 
-    function onSubmit(e) {
-        e.preventDefault();
-        const trimmed = (q ?? "").trim();
-        setParams(trimmed ? { q: trimmed } : {});
-        runSearch(trimmed);
-    }
+    useEffect(() => {
+        runSearch(q);
+    }, [q])
 
     // If someone opens /search?q=something directly
     useEffect(() => {
@@ -55,7 +52,6 @@ export default function Search() {
 
     return (
         <div className="searchPage">
-            {/* Removed the "DOCUMENTS" title by not rendering any page heading here */}
             <header className="searchHeader">
                 <div className="searchHeaderInner">
                     <div className="searchHeaderStack">
@@ -69,21 +65,13 @@ export default function Search() {
                             PAPERLESS
                         </button>
 
-                        <form className="searchBar" onSubmit={onSubmit} role="search">
+                        <form className="searchBar" role="search">
                             <input
                                 value={q}
                                 onChange={(e) => setQ(e.target.value)}
                                 placeholder="Search your documents…"
                                 aria-label="Search"
                             />
-
-                            <button
-                                className="btn btn-primary searchBtn"
-                                type="submit"
-                                disabled={!hasQuery || loading}
-                            >
-                                {loading ? "Searching…" : "Search"}
-                            </button>
                         </form>
                     </div>
                 </div>
