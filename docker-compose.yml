@@ -68,6 +68,11 @@ services:
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
     ports:
       - "9200:9200"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - appnet
 
@@ -122,6 +127,8 @@ services:
         condition: service_started
       minio:
         condition: service_started
+      elasticsearch:
+        condition: service_healthy
     networks:
       - appnet
 
@@ -161,8 +168,12 @@ services:
       TESSDATA_PREFIX: /usr/share/tesseract-ocr/5/tessdata
 
     depends_on:
-      - kafka
-      - minio
+      kafka:
+        condition: service_started
+      minio:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
     networks:
       - appnet
 
