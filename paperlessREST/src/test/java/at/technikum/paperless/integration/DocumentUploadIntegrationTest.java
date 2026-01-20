@@ -7,6 +7,9 @@ import at.technikum.paperless.service.FileStorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -15,10 +18,13 @@ import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.method.HandlerMethod;
@@ -27,9 +33,9 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.utility.DockerImageName;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.reflect.Parameter;
 import java.util.Comparator;
@@ -41,23 +47,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Testcontainers
-@SpringBootTest(classes = PaperlessApplication.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@ActiveProfiles("test")
+@EnableAutoConfiguration(exclude = KafkaAutoConfiguration.class)
+@SpringBootTest(
+        classes = PaperlessApplication.class,
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK
+)
 @AutoConfigureMockMvc
 @Import(DocumentUploadIntegrationTest.TestConfig.class)
 class DocumentUploadIntegrationTest {
-
     // containers
-
     @Container
     static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
             .withDatabaseName("paperless_test")
             .withUsername("paperless")
             .withPassword("paperless");
-
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer(
-            DockerImageName.parse("apache/kafka:3.7.0")
-    );
 
     @Container
     static final ElasticsearchContainer elasticsearch = new ElasticsearchContainer(
@@ -74,7 +78,7 @@ class DocumentUploadIntegrationTest {
         r.add("spring.datasource.password", postgres::getPassword);
 
         // Kafka
-        r.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+        //r.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
 
         // Elasticsearch
         r.add("spring.elasticsearch.uris", elasticsearch::getHttpHostAddress);
@@ -85,23 +89,17 @@ class DocumentUploadIntegrationTest {
     }
 
     //Spring beans
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private RequestMappingHandlerMapping handlerMapping;
+    @Autowired
+    private DocumentRepository documentRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-    private final MockMvc mockMvc;
-    private final RequestMappingHandlerMapping handlerMapping;
-    private final DocumentRepository documentRepository;
-    private final UserRepository userRepository;
-
-    DocumentUploadIntegrationTest(
-            MockMvc mockMvc,
-            RequestMappingHandlerMapping handlerMapping,
-            DocumentRepository documentRepository,
-            UserRepository userRepository
-    ) {
-        this.mockMvc = mockMvc;
-        this.handlerMapping = handlerMapping;
-        this.documentRepository = documentRepository;
-        this.userRepository = userRepository;
-    }
+    @MockitoBean
+    private AuthenticationManager authenticationManager;
 
     @BeforeEach
     void cleanDb() {
@@ -145,7 +143,14 @@ class DocumentUploadIntegrationTest {
      */
     private Optional<UploadEndpoint> resolveUploadEndpoint() {
         Map<RequestMappingInfo, HandlerMethod> methods = handlerMapping.getHandlerMethods();
-
+        System.out.println("=== REGISTERED HANDLERS ===");
+        methods.forEach((info, method) -> {
+            System.out.println(method.getBeanType().getName() + " -> " + info);
+        });
+        System.out.println("=== END HANDLERS ===");
+        methods.forEach((k, v) ->
+                System.out.println(v.getBeanType().getName())
+        );
         return methods.entrySet().stream()
                 .filter(e -> {
                     HandlerMethod hm = e.getValue();
@@ -153,10 +158,13 @@ class DocumentUploadIntegrationTest {
                 })
                 .filter(e -> {
                     RequestMappingInfo info = e.getKey();
-                    boolean isPost = info.getMethodsCondition().getMethods().contains(HttpMethod.POST);
+                    boolean isPost = info.getMethodsCondition()
+                            .getMethods()
+                            .stream()
+                            .anyMatch(m -> m == RequestMethod.POST);
                     boolean consumesMultipart = info.getConsumesCondition().getConsumableMediaTypes()
                             .stream()
-                            .anyMatch(mt -> mt.includes(MediaType.MULTIPART_FORM_DATA));
+                            .anyMatch(mt -> mt.isCompatibleWith(MediaType.MULTIPART_FORM_DATA));
                     return isPost && consumesMultipart;
                 })
                 .sorted(Comparator.comparing(e -> e.getKey().toString()))
