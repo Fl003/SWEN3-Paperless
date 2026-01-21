@@ -120,6 +120,8 @@ services:
       S3_ACCESS_KEY: minio
       S3_SECRET_KEY: minio123
       S3_PATH_STYLE: "true"   # important for minio
+    volumes:
+      - C:\Users\schmi\Documents\xml-files:/app/data/xml # - local folder path:/app/data/xml
     depends_on:
       db:
         condition: service_healthy

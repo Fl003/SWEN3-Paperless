@@ -1,0 +1,13 @@
+<Document>
+    <documentId>123</documentId>
+    <authorId>2</authorId>
+    <name>SampleDocument</name>
+    <contentType>text/plain</contentType>
+    <status>uploaded</status>
+    <createdAt>2026-01-01T12:00:00+01:00</createdAt>
+    <lastEdited>2026-01-20T15:00:00+01:00</lastEdited>
+    <tags>
+        <tag>important</tag>
+        <tag>confidential</tag>
+    </tags>
+</Document>
