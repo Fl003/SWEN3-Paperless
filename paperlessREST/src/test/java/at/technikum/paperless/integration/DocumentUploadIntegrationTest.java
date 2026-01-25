@@ -85,7 +85,7 @@ class DocumentUploadIntegrationTest {
     @MockitoBean
     private FileStorageService fileStorageService;
 
-    // ✅ replace Kafka publisher so no producer is created at all
+    // replace Kafka publisher so no producer is created at all
     @MockitoBean
     private DocumentEventsProducer documentEventsProducer;
 
@@ -97,7 +97,6 @@ class DocumentUploadIntegrationTest {
         Mockito.when(fileStorageService.store(Mockito.any()))
                 .thenReturn("test-storage-key");
 
-        // optional (publish is void anyway), but makes intent explicit
         Mockito.doNothing()
                 .when(documentEventsProducer)
                 .publish(Mockito.any());
