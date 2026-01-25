@@ -48,7 +48,6 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-fill-color: transparent;
     position: relative;
     display: inline-block;
 }
@@ -65,13 +64,15 @@ body {
 
 .sidebar nav {
     margin-top: 35px;
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar a {
     position: relative;
     color: white;
     text-decoration: none;
-    margin: 0 8px;
+    margin: 10px 30px;
     padding: 10px 30px;
     border-radius: 10px;
     overflow: hidden;
@@ -137,7 +138,6 @@ body {
 .list-style-switch {
     display: flex;
     border-radius: 8px;
-    border: solid 1px grey;
     margin-right: 20px;
     width: 80px;
     border: solid 1px var(--brand2);
@@ -151,11 +151,11 @@ body {
 }
 
 .list-style-switch button:first-child {
-    border-radius: 8px 0px 0px 8px;
+    border-radius: 8px 0 0 8px;
 }
 
 .list-style-switch button:last-child {
-    border-radius: 0px 8px 8px 0px;
+    border-radius: 0 8px 8px 0;
 }
 
 .list-style-switch button img {
@@ -196,7 +196,7 @@ body {
 
 .card:hover {
     border: solid 2px var(--brand2);
-    box-shadow: 0px 0px 20px -8px var(--brand2);
+    box-shadow: 0 0 20px -8px var(--brand2);
     text-decoration: none;
 }
 
@@ -643,8 +643,253 @@ pre {
 
 .login .input-wrapper input:focus~label,
 .login .input-wrapper input:not(:placeholder-shown)~label {
-    top: 0px;
+    top: 0;
     left: 10px;
     font-size: 0.8rem;
     color: var(--brand2);
+}
+
+.searchPage {
+    width: 100%;
+    min-height: 100vh;
+    background: var(--bg);
+}
+
+/* Hide the "DOCUMENTS" page title only on the Search route */
+.searchPage ~ .content-side h2,
+.searchPage .content-side h2 {
+    display: none;
+}
+
+.searchHeader {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(246, 248, 250, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+}
+
+.searchHeaderInner {
+    padding: 18px 50px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.searchHeaderStack {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.paperlessLogo {
+    border: none;
+    cursor: pointer;
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 0;
+    line-height: 1;
+
+    background: linear-gradient(90deg, var(--brand1), var(--brand2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+.paperlessLogo:focus-visible {
+    outline: 3px solid rgba(91, 134, 229, .35);
+    outline-offset: 4px;
+    border-radius: 10px;
+}
+
+.searchBar {
+    width: 100%;
+    max-width: 900px;
+
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 999px;
+    padding: 8px 10px 8px 14px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .05);
+    transition: border .2s ease, box-shadow .2s ease;
+}
+
+.searchBar:focus-within {
+    border-color: var(--brand2);
+    box-shadow: 0 0 0 4px rgba(91, 134, 229, .14);
+}
+
+.searchBar input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 1rem;
+    padding: 6px 0;
+    color: var(--text);
+}
+
+.searchBar input::placeholder {
+    color: #9ca3af;
+}
+
+.searchBtn {
+    border-radius: 999px;
+    padding: 10px 16px;
+    box-shadow: 0 4px 12px rgba(91, 134, 229, .18);
+}
+
+.searchBtn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.searchSubline {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 50px 14px;
+    font-size: .95rem;
+}
+
+.searchQuery {
+    font-weight: 700;
+    color: #111827;
+}
+
+.searchBody {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 50px 40px;
+}
+
+.searchInfo {
+    color: var(--muted);
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 12px 0;
+}
+
+.searchError {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 12px 0;
+}
+
+.searchResults {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.searchResult {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
+    transition: border .2s ease, box-shadow .2s ease, transform .05s ease;
+}
+
+.searchResult:hover {
+    border-color: rgba(91, 134, 229, .55);
+    box-shadow: 0 10px 24px rgba(91, 134, 229, .10);
+}
+
+.searchResult:active {
+    transform: translateY(1px);
+}
+
+.searchResultTop {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.searchResultTitle {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #111827;
+    text-decoration: none;
+}
+
+.searchResultTitle:hover {
+    text-decoration: underline;
+}
+
+.searchResultScore {
+    font-size: .85rem;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.searchResultSnippet {
+    margin-top: 8px;
+    color: #374151;
+    line-height: 1.45;
+    font-size: .98rem;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.searchResultMeta {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: .85rem;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    color: #374151;
+}
+
+.pill-strong {
+    border-color: rgba(91, 134, 229, .55);
+    background: rgba(91, 134, 229, .10);
+    color: #1f2a44;
+    font-weight: 700;
+}
+
+@media (max-width: 900px) {
+    .searchHeaderInner,
+    .searchSubline,
+    .searchBody {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .searchHeaderStack {
+        align-items: stretch;
+    }
+
+    .paperlessLogo {
+        text-align: left;
+    }
 }

@@ -59,7 +59,7 @@ services:
     networks:
       - appnet
 
-    # Elasticsearch (NEW)
+    # Elasticsearch
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     environment:
@@ -68,6 +68,11 @@ services:
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
     ports:
       - "9200:9200"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - appnet
 
@@ -115,6 +120,8 @@ services:
       S3_ACCESS_KEY: minio
       S3_SECRET_KEY: minio123
       S3_PATH_STYLE: "true"   # important for minio
+    volumes:
+      - C:\Users\schmi\Documents\xml-files:/app/data/xml # - local folder path:/app/data/xml
     depends_on:
       db:
         condition: service_healthy
@@ -122,6 +129,8 @@ services:
         condition: service_started
       minio:
         condition: service_started
+      elasticsearch:
+        condition: service_healthy
     networks:
       - appnet
 
@@ -161,8 +170,12 @@ services:
       TESSDATA_PREFIX: /usr/share/tesseract-ocr/5/tessdata
 
     depends_on:
-      - kafka
-      - minio
+      kafka:
+        condition: service_started
+      minio:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
     networks:
       - appnet
 

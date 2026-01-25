@@ -1,6 +1,7 @@
 package at.technikum.paperless.ocrworker;
 
 import at.technikum.paperless.events.DocumentUploadedEvent;
+import at.technikum.paperless.ocrworker.search.IndexingService;
 import at.technikum.paperless.ocrworker.service.OcrEngine;
 import at.technikum.paperless.ocrworker.service.S3StorageClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +11,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class OcrWorkerServiceTest {
@@ -18,6 +20,9 @@ class OcrWorkerServiceTest {
     @Mock OcrEngine ocr;
     @Mock KafkaTemplate<String, String> kafka;
 
+    // ✅ THIS is what you're missing
+    @Mock IndexingService indexingService;
+
     @Captor ArgumentCaptor<String> payloadCaptor;
 
     @InjectMocks OcrWorkerService service;
@@ -25,7 +30,6 @@ class OcrWorkerServiceTest {
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
-        // force a deterministic topic for test
         ReflectionTestUtils.setField(service, "outTopic", "ocr.results.test");
     }
 
@@ -38,7 +42,7 @@ class OcrWorkerServiceTest {
         e.setTenantId("default");
         e.setOriginalFilename("file.pdf");
         e.setStoragePath("docs/doc-42.pdf");
-        e.setContentType(ct); // can be null to trigger HEAD lookup
+        e.setContentType(ct);
         return e;
     }
 
@@ -57,11 +61,15 @@ class OcrWorkerServiceTest {
         assertThat(json).contains("\"documentId\":\"doc-42\"");
         assertThat(json).contains("\"contentType\":\"application/pdf\"");
         assertThat(json).contains("EXTRACTED TEXT");
+
+        // optional: also verify indexing happened
+        verify(indexingService).indexDone(eq("doc-42"), eq(1L), anyString(), anyString(), anyLong(), anyString(), anyString());
     }
 
     @Test
     void missingContentType_headsFromS3() throws Exception {
-        var e = event(null); // force getContentType()
+        var e = event(null);
+
         when(storage.getContentType("docs/doc-42.pdf")).thenReturn("image/png");
         when(storage.load("docs/doc-42.pdf")).thenReturn(new byte[]{1,2,3});
         when(ocr.ocr(any(), eq("image/png"), eq("file.pdf"))).thenReturn("IMG TEXT");
@@ -77,6 +85,7 @@ class OcrWorkerServiceTest {
     @Test
     void onError_publishesERRORPayload() throws Exception {
         var e = event("application/pdf");
+
         when(storage.load(anyString())).thenReturn("PDF".getBytes());
         when(ocr.ocr(any(), any(), any())).thenThrow(new RuntimeException("boom"));
 

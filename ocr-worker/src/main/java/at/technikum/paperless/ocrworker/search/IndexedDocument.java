@@ -24,6 +24,7 @@ public class IndexedDocument {
     private String status;     // DONE / ERROR
     private Long durationMs;
 
+    private String name;
     //full OCR text. ES will index this for full-text search
     private String text;
 

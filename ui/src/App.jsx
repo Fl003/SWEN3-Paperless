@@ -63,7 +63,9 @@ export default function App() {
             </div>
             <div className="content-side">
                 <div className="content-header">
-                    <h2>DOCUMENTS</h2>
+                    <h2>
+                        {location.pathname === "/search" ? "SEARCH" : "DOCUMENTS"}
+                    </h2>
                     <div className="actions-bar">
                         {location.pathname === "/" && (
                             <div className="list-style-switch">

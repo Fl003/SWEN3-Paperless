@@ -33,6 +33,9 @@ public class IndexedDocument {
     private Long durationMs;
 
     @Field(type = FieldType.Text)
+    private String name;
+
+    @Field(type = FieldType.Text)
     private String text;
 
     @Field(type = FieldType.Long)
